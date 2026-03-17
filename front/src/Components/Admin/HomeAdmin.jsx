@@ -37,7 +37,7 @@ export default function HomeAdmin() {
 const fetchHomeData = async () => {
   try {
     setLoading(true);
-    const response = await axios.get("http://localhost:5000/api/home");
+    const response = await axios.get("process.env.VITE_API_URL/api/home");
     const data = response.data || {};
     
     // Fix: Always exactly 5 items with proper numbering
@@ -68,8 +68,8 @@ const fetchHomeData = async () => {
 
     setCurrentImages({
       bannerImage: "", // STATIC - no preview needed
-      latestProducts: (data.latestProducts || []).slice(0,5).map(p => p?.image ? `http://localhost:5000/${p.image}` : ""),
-      occasions: (data.occasions || []).slice(0,5).map(o => o?.image ? `http://localhost:5000/${o.image}` : "")
+      latestProducts: (data.latestProducts || []).slice(0,5).map(p => p?.image ? `process.env.VITE_API_URL/${p.image}` : ""),
+      occasions: (data.occasions || []).slice(0,5).map(o => o?.image ? `process.env.VITE_API_URL/${o.image}` : "")
     });
     
   } catch (err) {
@@ -146,7 +146,7 @@ const handleSave = async () => {
       }
     });
 
-    const response = await axios.post("http://localhost:5000/api/home", formDataToSend, {
+    const response = await axios.post("process.env.VITE_API_URL/api/home", formDataToSend, {
       headers: { "Content-Type": "multipart/form-data" }
     });
 

@@ -17,7 +17,7 @@ useEffect(() => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/orders",
+        "process.env.VITE_API_URL/api/orders",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -81,7 +81,7 @@ useEffect(() => {
                   <div className="order-item" key={idx}>
                      {item.product?.image && (
         <img
-          src={`http://localhost:5000/uploads/${item.product.image}`}
+          src={`process.env.VITE_API_URL/uploads/${item.product.image}`}
           alt={item.product.name}
           className="order-item-img"
         />

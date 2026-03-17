@@ -30,7 +30,7 @@ const AddProduct = () => {
     formData.append('price', product.price);
     formData.append('image', selectedFile);
 
-    axios.post('http://localhost:5000/addProduct', formData)
+    axios.post('process.env.VITE_API_URL/addProduct', formData)
       .then(response => {
         console.log("Product added successfully", response);
         alert("Product Added");

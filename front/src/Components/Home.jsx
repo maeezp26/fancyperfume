@@ -44,7 +44,7 @@ export default function Home() {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/home");
+        const response = await axios.get("process.env.VITE_API_URL/api/home");
         const data = response.data;
         console.log("Home API data:", data);
 
@@ -59,7 +59,7 @@ export default function Home() {
               ? data.latestProducts.map((p, idx) => ({
                   name: p.name || prev.latestProducts[idx]?.name || `Product ${idx + 1}`,
                   image: p.image
-                    ? `http://localhost:5000/${p.image}`
+                    ? `process.env.VITE_API_URL/${p.image}`
                     : prev.latestProducts[idx]?.image ||
                       [LP1Fallback, LP2Fallback, LP3Fallback, LP4Fallback, LP5Fallback][idx] ||
                       LP1Fallback,
@@ -70,7 +70,7 @@ export default function Home() {
               ? data.occasions.map((o, idx) => ({
                   name: o.name || prev.occasions[idx]?.name || `Occasion ${idx + 1}`,
                   image: o.image
-                    ? `http://localhost:5000/${o.image}`
+                    ? `process.env.VITE_API_URL/${o.image}`
                     : prev.occasions[idx]?.image ||
                       [officeFallback, dateFallback, partyFallback, gymFallback, sportsFallback][idx] ||
                       officeFallback,

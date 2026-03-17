@@ -16,7 +16,7 @@ import axios from 'axios';
     const navigate = useNavigate()
 
     useEffect(() => {
-      axios.get("http://localhost:5000/Admin/getUser/"+id)
+      axios.get("process.env.VITE_API_URL/Admin/getUser/"+id)
         .then(result =>{ 
           console.log(result)
           setName(result.data.name)
@@ -33,7 +33,7 @@ import axios from 'axios';
 
     const Update = (e) =>{
       e.preventDefault()
-      axios.put("http://localhost:5000/Update/"+id, {name,email,num,city,uname,pass,conpass})
+      axios.put("process.env.VITE_API_URL/Update/"+id, {name,email,num,city,uname,pass,conpass})
       .then(result => {
         console.log(result)
         navigate('/Admin')

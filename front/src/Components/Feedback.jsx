@@ -33,7 +33,7 @@ export default function Feedback() {
 
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/feedback/add", {
+      await axios.post("process.env.VITE_API_URL/api/feedback/add", {
         ...formData,
         rating,
       });

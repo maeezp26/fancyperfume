@@ -37,7 +37,7 @@ const handleBuyNow = async (product) => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/products");
+        const response = await axios.get("process.env.VITE_API_URL/api/products");
         setAllProducts(response.data);
         setFilteredProducts(response.data);
       } catch (error) {
@@ -177,7 +177,7 @@ const handleBuyNow = async (product) => {
           >
             <div className="category-card-media">
               <img
-                src={`http://localhost:5000${product.imageUrl}`}
+                src={`process.env.VITE_API_URL${product.imageUrl}`}
                 alt={product.name}
                 className="category-card-image"
               />
