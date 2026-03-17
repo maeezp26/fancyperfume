@@ -1,0 +1,257 @@
+.orders-admin-page {
+  min-height: 100vh;
+  background: var(--gradient-dark);
+  padding: 2rem;
+  color: var(--text-primary);
+}
+
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.orders-title {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-denied {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  padding: 4rem;
+}
+
+.loading-spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--primary-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 2rem auto;
+}
+
+.orders-table-wrapper {
+  background: var(--glass-bg);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid var(--border-light);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-glass);
+  overflow-x: auto;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 1000px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 1rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  vertical-align: top;
+}
+
+.orders-table th {
+  font-weight: 600;
+  color: var(--primary-gold);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.orders-table tr:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.order-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.orders-email {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.address-cell {
+  max-width: 200px;
+}
+
+.orders-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-width: 200px;
+}
+
+.orders-items li {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.total-col {
+  font-size: 1.1rem !important;
+}
+
+.status-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-paid { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+.status-pending { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+
+.empty-state {
+  text-align: center;
+  padding: 6rem 2rem;
+}
+
+.empty-icon {
+  font-size: 6rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+/* Add to OrdersAdmin.css */
+
+.admin-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--glass-bg);
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  backdrop-filter: blur(20px);
+  flex-wrap: wrap;
+}
+
+.admin-filters select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  backdrop-filter: blur(10px);
+  min-width: 160px;
+  transition: all 0.3s ease;
+}
+
+.admin-filters select:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.admin-filters select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-filters {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  
+  .admin-filters select {
+    min-width: 100%;
+  }
+}
+
+/* Dark theme fallback */
+.admin-filters select option:checked {
+  background: var(--primary-gold) !important;
+  color: #000 !important;
+}
+
+/* Wrapper so arrow can be custom */
+.dropdown-pill {
+  position: relative;
+  display: inline-block;
+}
+
+/* Base select styling */
+.dropdown-pill select {
+  appearance: none;                 /* remove default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  padding: 0.75rem 2.5rem 0.75rem 1.25rem;
+  min-width: 180px;
+
+  border-radius: 999px;             /* pill shape */
+  border: 2px solid #d4af37;        /* gold border */
+  background: #2a2b3d;              /* dark bg to match your theme */
+  color: #f8f8f8;
+
+  font-size: 0.95rem;
+  font-weight: 500;
+
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+/* Hover / focus states */
+.dropdown-pill select:hover {
+  background: #33354a;
+}
+
+.dropdown-pill select:focus {
+  border-color: #f2d37a;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35);
+}
+
+/* Custom arrow */
+.dropdown-pill::after {
+  content: '▾';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #f8f8f8;
+  font-size: 0.75rem;
+}
+
+/* Option list (limited control, but this helps on some browsers) */
+.dropdown-pill select option {
+  background: #181925;
+  color: #f8f8f8;
+}
+
+/* Optional: make the open dropdown align with your design (Chrome) */
+.dropdown-pill select::-ms-expand {
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .orders-admin-page {
+    padding: 1rem;
+  }
+}
