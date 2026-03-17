@@ -141,7 +141,7 @@ if (!cart || cart.items.length === 0) {
                     src={
                       item.product.imageUrl.startsWith('http')
                         ? item.product.imageUrl
-                        : `process.env.VITE_API_URL${item.product.imageUrl}`
+                        : `import.meta.env.VITE_API_URL${item.product.imageUrl}`
                     }
                     alt={item.product.name}
                     onError={(e) => {

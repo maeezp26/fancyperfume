@@ -37,7 +37,7 @@ export const CartProvider = ({ children }) => {
         return;
       }
 
-      const response = await axios.get('process.env.VITE_API_URL/api/cart', {
+      const response = await axios.get('import.meta.env.VITE_API_URL/api/cart', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart(response.data);
@@ -66,7 +66,7 @@ export const CartProvider = ({ children }) => {
       console.log('Adding to cart:', { productId, quantity, mlSize });
       
       const token = localStorage.getItem('token');
-      const response = await axios.post('process.env.VITE_API_URL/api/cart/add', {
+      const response = await axios.post('import.meta.env.VITE_API_URL/api/cart/add', {
         productId,
         quantity,
         mlSize
@@ -94,7 +94,7 @@ export const CartProvider = ({ children }) => {
       console.log('Updating quantity:', itemId, quantity);
       
       const token = localStorage.getItem('token');
-      const response = await axios.put(`process.env.VITE_API_URL/api/cart/update/${itemId}`, {
+      const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update/${itemId}`, {
         quantity
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -116,7 +116,7 @@ export const CartProvider = ({ children }) => {
       console.log('Updating mlSize:', itemId, mlSize);
       
       const token = localStorage.getItem('token');
-      const response = await axios.put(`process.env.VITE_API_URL/api/cart/update-ml/${itemId}`, {
+      const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update-ml/${itemId}`, {
         mlSize
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -137,7 +137,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`process.env.VITE_API_URL/api/cart/remove/${itemId}`, {
+      const response = await axios.delete(`import.meta.env.VITE_API_URL/api/cart/remove/${itemId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -156,7 +156,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       
       const token = localStorage.getItem('token');
-      await axios.delete('process.env.VITE_API_URL/api/cart/clear', {
+      await axios.delete('import.meta.env.VITE_API_URL/api/cart/clear', {
         headers: { Authorization: `Bearer ${token}` }
       });
       

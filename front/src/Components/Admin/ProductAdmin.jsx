@@ -27,7 +27,7 @@ export default function ProductAdmin() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = "process.env.VITE_API_URL/api/products";
+  const API_URL = "import.meta.env.VITE_API_URL/api/products";
 
   useEffect(() => {
     fetchProducts();
@@ -376,12 +376,12 @@ formData.notes.base.forEach((n) => {
                             className="product-image-wrapper"
                             onClick={() =>
                               handleImageClick(
-                                `process.env.VITE_API_URL${prod.imageUrl}`
+                                `import.meta.env.VITE_API_URL${prod.imageUrl}`
                               )
                             }
                           >
                             <img
-                              src={`process.env.VITE_API_URL${prod.imageUrl}`}
+                              src={`import.meta.env.VITE_API_URL${prod.imageUrl}`}
                               alt={prod.name}
                               className="product-image"
                             />
@@ -420,7 +420,7 @@ formData.notes.base.forEach((n) => {
                                 <div className="note-img-container">
                                   {n.imageUrl ? (
                                     <img
-                                      src={`process.env.VITE_API_URL${n.imageUrl}`}
+                                      src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
                                       alt={n.name}
                                       className="note-img"
                                     />
@@ -554,7 +554,7 @@ formData.notes.base.forEach((n) => {
                   <div className="current-image-preview">
                     <span>Current Image:</span>
                     <img
-                      src={`process.env.VITE_API_URL${selectedProduct.imageUrl}`}
+                      src={`import.meta.env.VITE_API_URL${selectedProduct.imageUrl}`}
                       alt="Current"
                     />
                   </div>
@@ -584,7 +584,7 @@ formData.notes.base.forEach((n) => {
                         />
                         {n.imageUrl && (
                           <img
-                            src={`process.env.VITE_API_URL${n.imageUrl}`}
+                            src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
                             alt="Current note"
                             className="note-preview"
                             title="Current image"

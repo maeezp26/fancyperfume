@@ -15,7 +15,7 @@ const UpdateProduct = () => {
         // Fetch the product details
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`process.env.VITE_API_URL/products/${id}`);
+                const response = await axios.get(`import.meta.env.VITE_API_URL/products/${id}`);
                 setProduct(response.data);
             } catch (error) {
                 console.error("Error fetching product:", error);
@@ -37,7 +37,7 @@ const UpdateProduct = () => {
         }
     
         try {
-            const response = await axios.put(`process.env.VITE_API_URL/products/update/${id}`, formData);
+            const response = await axios.put(`import.meta.env.VITE_API_URL/products/update/${id}`, formData);
             alert('Product updated successfully!');
         } catch (error) {
             console.error("Error updating product:", error);

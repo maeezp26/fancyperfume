@@ -9,13 +9,13 @@ export default function AdminPanel() {
 
   useEffect(() => {
     // Fetch Feedback Data
-    fetch('process.env.VITE_API_URL/api/feedback')
+    fetch('import.meta.env.VITE_API_URL/api/feedback')
       .then((response) => response.json())
       .then((data) => setFeedbackData(data))
       .catch((error) => console.error(error));
 
     // Fetch Product Data (latest products)
-    fetch('process.env.VITE_API_URL/api/products')
+    fetch('import.meta.env.VITE_API_URL/api/products')
       .then((response) => response.json())
       .then((data) => setProductData(data))
       .catch((error) => console.error(error));
@@ -32,7 +32,7 @@ export default function AdminPanel() {
     formData.append('name', newProduct.name);
     formData.append('image', newProduct.image);
 
-    fetch('process.env.VITE_API_URL/api/products', {
+    fetch('import.meta.env.VITE_API_URL/api/products', {
       method: 'POST',
       body: formData,
     })
@@ -45,7 +45,7 @@ export default function AdminPanel() {
   };
 
   const handleDeleteProduct = (id) => {
-    fetch(`process.env.VITE_API_URL/api/products/${id}`, {
+    fetch(`import.meta.env.VITE_API_URL/api/products/${id}`, {
       method: 'DELETE',
     })
       .then(() => setProductData(productData.filter((product) => product._id !== id)))
@@ -99,7 +99,7 @@ export default function AdminPanel() {
                     <td className="table-cell-fancy">
                       <img
                         className="image-fancy"
-                        src={`process.env.VITE_API_URL/uploads/${product.image}`}
+                        src={`import.meta.env.VITE_API_URL/uploads/${product.image}`}
                         alt={product.name}
                       />
                     </td>

@@ -29,7 +29,7 @@ const filteredOrders = orders.filter(order => {
       try {
         const token = localStorage.getItem('token');
        // In your OrdersAdmin useEffect:
-        const res = await fetch('process.env.VITE_API_URL/api/orders/admin', {
+        const res = await fetch('import.meta.env.VITE_API_URL/api/orders/admin', {
           headers: {
             'Authorization': `Bearer ${token}`  // ✅ Remove Content-Type for GET
           }
