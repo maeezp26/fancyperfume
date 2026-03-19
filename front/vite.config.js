@@ -7,11 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-<<<<<<< HEAD
         target: 'import.meta.env.VITE_API_URL',
-=======
-        target: 'import.meta.env.VITE_API_URL',
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+
         changeOrigin: true,
         secure: false,
       },
