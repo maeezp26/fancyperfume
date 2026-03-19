@@ -9,7 +9,11 @@ export default function FeedbackAdmin() {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
+<<<<<<< HEAD
         const response = await axios.get("http://localhost:5000/api/feedback");
+=======
+        const response = await axios.get("import.meta.env.VITE_API_URL/api/feedback");
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
         setFeedbacks(response.data || []);
       } catch (error) {
         console.error("Error fetching feedbacks:", error);
@@ -26,7 +30,11 @@ export default function FeedbackAdmin() {
     }
 
     try {
+<<<<<<< HEAD
       await axios.delete(`http://localhost:5000/api/feedback/${id}`);
+=======
+      await axios.delete(`import.meta.env.VITE_API_URL/api/feedback/${id}`);
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       setFeedbacks((prev) => prev.filter((f) => f._id !== id));
     } catch (error) {
       console.error("Error deleting feedback:", error);

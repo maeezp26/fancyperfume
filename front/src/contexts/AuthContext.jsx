@@ -34,7 +34,11 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         try {
           // Verify token with backend
+<<<<<<< HEAD
           const response = await axios.get('http://localhost:5000/api/auth/profile');
+=======
+          const response = await axios.get('import.meta.env.VITE_API_URL/api/auth/profile');
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
           setUser(response.data.user);
           setToken(storedToken);
         } catch (error) {
@@ -53,7 +57,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+<<<<<<< HEAD
       const response = await axios.post('http://localhost:5000/api/auth/login', credentials);
+=======
+      const response = await axios.post('import.meta.env.VITE_API_URL/api/auth/login', credentials);
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       const { token: newToken, user: userData } = response.data;
       
       localStorage.setItem('token', newToken);
@@ -72,7 +80,11 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+<<<<<<< HEAD
       const response = await axios.post('http://localhost:5000/api/auth/register', userData);
+=======
+      const response = await axios.post('import.meta.env.VITE_API_URL/api/auth/register', userData);
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       const { token: newToken, user: newUser } = response.data;
       
       localStorage.setItem('token', newToken);

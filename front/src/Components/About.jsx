@@ -19,7 +19,11 @@ export default function About() {
     const fetchAboutData = async () => {
       try {
         setLoading(true);
+<<<<<<< HEAD
         const res = await axios.get("http://localhost:5000/api/about");
+=======
+        const res = await axios.get("import.meta.env.VITE_API_URL/api/about");
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
         if (res.data && res.data.sections && res.data.sections.length > 0) {
           setSections(res.data.sections);
         }
@@ -87,7 +91,11 @@ export default function About() {
         ) : sections.length > 0 ? (
           sections.map((section, index) => {
             const imgSrc = section.imageUrl
+<<<<<<< HEAD
               ? `http://localhost:5000${section.imageUrl}`
+=======
+              ? `import.meta.env.VITE_API_URL${section.imageUrl}`
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
               : fallbackImages[index] || fallbackImages[0];
             const isEven = index % 2 === 0;
 

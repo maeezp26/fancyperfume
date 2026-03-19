@@ -42,7 +42,11 @@ export default function AboutAdmin() {
   useEffect(() => {
     const fetchAboutData = async () => {
       try {
+<<<<<<< HEAD
         const res = await axios.get("http://localhost:5000/api/about");
+=======
+        const res = await axios.get("import.meta.env.VITE_API_URL/api/about");
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
         if (res.data && res.data.sections.length > 0) {
           setSections(res.data.sections);
         }
@@ -79,7 +83,11 @@ export default function AboutAdmin() {
         }
       });
 
+<<<<<<< HEAD
       await axios.put("http://localhost:5000/api/about", formData, {
+=======
+      await axios.put("import.meta.env.VITE_API_URL/api/about", formData, {
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("About page content saved successfully!");
@@ -119,7 +127,11 @@ export default function AboutAdmin() {
             <img
               src={
                 section.imageUrl.startsWith("/uploads")
+<<<<<<< HEAD
                   ? `http://localhost:5000${section.imageUrl}`
+=======
+                  ? `import.meta.env.VITE_API_URL${section.imageUrl}`
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
                   : section.imageUrl
               }
               alt={section.title}

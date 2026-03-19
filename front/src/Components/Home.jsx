@@ -44,7 +44,11 @@ export default function Home() {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
+<<<<<<< HEAD
         const response = await axios.get("http://localhost:5000/api/home");
+=======
+        const response = await axios.get("import.meta.env.VITE_API_URL/api/home");
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
         const data = response.data;
         console.log("Home API data:", data);
 
@@ -59,7 +63,11 @@ export default function Home() {
               ? data.latestProducts.map((p, idx) => ({
                   name: p.name || prev.latestProducts[idx]?.name || `Product ${idx + 1}`,
                   image: p.image
+<<<<<<< HEAD
                     ? `http://localhost:5000/${p.image}`
+=======
+                    ? `import.meta.env.VITE_API_URL/${p.image}`
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
                     : prev.latestProducts[idx]?.image ||
                       [LP1Fallback, LP2Fallback, LP3Fallback, LP4Fallback, LP5Fallback][idx] ||
                       LP1Fallback,
@@ -70,7 +78,11 @@ export default function Home() {
               ? data.occasions.map((o, idx) => ({
                   name: o.name || prev.occasions[idx]?.name || `Occasion ${idx + 1}`,
                   image: o.image
+<<<<<<< HEAD
                     ? `http://localhost:5000/${o.image}`
+=======
+                    ? `import.meta.env.VITE_API_URL/${o.image}`
+>>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
                     : prev.occasions[idx]?.image ||
                       [officeFallback, dateFallback, partyFallback, gymFallback, sportsFallback][idx] ||
                       officeFallback,
