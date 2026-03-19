@@ -59,11 +59,10 @@ const handleBuyNow = async () => {
           <div className="note-item" key={index}>
             <div className="note-image-wrapper">
               <img
-<<<<<<< HEAD
+ 
                 src={`import.meta.env.VITE_API_URL${note.imageUrl}`}
-=======
-                src={`import.meta.env.VITE_API_URL${note.imageUrl}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+  
+   
                 alt={note.name}
                 className="note-image"
                 onError={(e) => (e.target.style.display = "none")}
@@ -96,11 +95,10 @@ const handleBuyNow = async () => {
         <div className="product-gallery">
           <div className="main-image-container">
             <img
-<<<<<<< HEAD
+ 
               src={`import.meta.env.VITE_API_URL${galleryImages[currentImageIndex]}`}
-=======
-              src={`import.meta.env.VITE_API_URL${galleryImages[currentImageIndex]}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+  
+   
               alt={product.name}
               className="main-product-image"
             />
@@ -133,11 +131,9 @@ const handleBuyNow = async () => {
                   onClick={() => setCurrentImageIndex(index)}
                 >
                   <img
-<<<<<<< HEAD
+ 
                     src={`import.meta.env.VITE_API_URL${img}`}
-=======
-                    src={`import.meta.env.VITE_API_URL${img}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
                     alt={`${product.name} ${index + 1}`}
                   />
                 </div>

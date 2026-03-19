@@ -1,19 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
-<<<<<<< HEAD
+ 
 import { useNavigate } from "react-router-dom";
 import "./css/MyOrders.css";
 
 export default function MyOrders() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
-=======
-import "./css/MyOrders.css";
-
-export default function MyOrders() {
-  const { token } = useAuth();
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+  
+   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,23 +17,21 @@ export default function MyOrders() {
 
 
 useEffect(() => {
-<<<<<<< HEAD
+ 
   if (!token) {
     setLoading(false);
     return;
   }
-=======
+  
   if (!token) return;
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
 
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
-<<<<<<< HEAD
+  
         "import.meta.env.VITE_API_URL/api/orders",
-=======
-        "import.meta.env.VITE_API_URL/api/orders",
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -50,10 +44,10 @@ useEffect(() => {
         "Failed to fetch orders",
         err.response?.data || err.message
       );
-<<<<<<< HEAD
+ 
       setError(err.response?.data?.message || "Failed to load orders");
-=======
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+  
+   
     } finally {
       setLoading(false);
     }
@@ -64,7 +58,7 @@ useEffect(() => {
 
 
 
-<<<<<<< HEAD
+ 
   if (!user) {
     return (
       <main className="luxury-checkout">
@@ -90,8 +84,8 @@ useEffect(() => {
     );
   }
 
-=======
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+  
+   
   if (loading) {
     return <div className="orders-loading">Loading your orders...</div>;
   }
@@ -105,11 +99,11 @@ useEffect(() => {
         </p>
       </div>
 
-<<<<<<< HEAD
+ 
       {error && <div className="no-orders">{error}</div>}
 
-=======
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+  
+   
       {orders.length === 0 ? (
         <div className="no-orders">
           You haven’t placed any orders yet.
@@ -138,11 +132,9 @@ useEffect(() => {
                   <div className="order-item" key={idx}>
                      {item.product?.image && (
         <img
-<<<<<<< HEAD
+  
           src={`import.meta.env.VITE_API_URL/uploads/${item.product.image}`}
-=======
-          src={`import.meta.env.VITE_API_URL/uploads/${item.product.image}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
           alt={item.product.name}
           className="order-item-img"
         />

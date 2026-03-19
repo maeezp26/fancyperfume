@@ -9,21 +9,15 @@ export default function AdminPanel() {
 
   useEffect(() => {
     // Fetch Feedback Data
-<<<<<<< HEAD
+
     fetch('import.meta.env.VITE_API_URL/api/feedback')
-=======
-    fetch('import.meta.env.VITE_API_URL/api/feedback')
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       .then((response) => response.json())
       .then((data) => setFeedbackData(data))
       .catch((error) => console.error(error));
 
     // Fetch Product Data (latest products)
-<<<<<<< HEAD
+
     fetch('import.meta.env.VITE_API_URL/api/products')
-=======
-    fetch('import.meta.env.VITE_API_URL/api/products')
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       .then((response) => response.json())
       .then((data) => setProductData(data))
       .catch((error) => console.error(error));
@@ -40,11 +34,8 @@ export default function AdminPanel() {
     formData.append('name', newProduct.name);
     formData.append('image', newProduct.image);
 
-<<<<<<< HEAD
+
     fetch('import.meta.env.VITE_API_URL/api/products', {
-=======
-    fetch('import.meta.env.VITE_API_URL/api/products', {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       method: 'POST',
       body: formData,
     })
@@ -57,11 +48,8 @@ export default function AdminPanel() {
   };
 
   const handleDeleteProduct = (id) => {
-<<<<<<< HEAD
+
     fetch(`import.meta.env.VITE_API_URL/api/products/${id}`, {
-=======
-    fetch(`import.meta.env.VITE_API_URL/api/products/${id}`, {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       method: 'DELETE',
     })
       .then(() => setProductData(productData.filter((product) => product._id !== id)))
@@ -115,11 +103,7 @@ export default function AdminPanel() {
                     <td className="table-cell-fancy">
                       <img
                         className="image-fancy"
-<<<<<<< HEAD
                         src={`import.meta.env.VITE_API_URL/uploads/${product.image}`}
-=======
-                        src={`import.meta.env.VITE_API_URL/uploads/${product.image}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
                         alt={product.name}
                       />
                     </td>

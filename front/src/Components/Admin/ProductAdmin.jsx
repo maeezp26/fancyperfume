@@ -27,11 +27,11 @@ export default function ProductAdmin() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-<<<<<<< HEAD
+ 
   const API_URL = "import.meta.env.VITE_API_URL/api/products";
-=======
+  
   const API_URL = "import.meta.env.VITE_API_URL/api/products";
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
 
   useEffect(() => {
     fetchProducts();
@@ -380,20 +380,20 @@ formData.notes.base.forEach((n) => {
                             className="product-image-wrapper"
                             onClick={() =>
                               handleImageClick(
-<<<<<<< HEAD
+ 
                                 `import.meta.env.VITE_API_URL${prod.imageUrl}`
-=======
+  
                                 `import.meta.env.VITE_API_URL${prod.imageUrl}`
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
                               )
                             }
                           >
                             <img
-<<<<<<< HEAD
+ 
                               src={`import.meta.env.VITE_API_URL${prod.imageUrl}`}
-=======
+  
                               src={`import.meta.env.VITE_API_URL${prod.imageUrl}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
                               alt={prod.name}
                               className="product-image"
                             />
@@ -432,11 +432,11 @@ formData.notes.base.forEach((n) => {
                                 <div className="note-img-container">
                                   {n.imageUrl ? (
                                     <img
-<<<<<<< HEAD
+ 
                                       src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
-=======
+  
                                       src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
                                       alt={n.name}
                                       className="note-img"
                                     />
@@ -570,11 +570,11 @@ formData.notes.base.forEach((n) => {
                   <div className="current-image-preview">
                     <span>Current Image:</span>
                     <img
-<<<<<<< HEAD
+ 
                       src={`import.meta.env.VITE_API_URL${selectedProduct.imageUrl}`}
-=======
+  
                       src={`import.meta.env.VITE_API_URL${selectedProduct.imageUrl}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
                       alt="Current"
                     />
                   </div>
@@ -604,11 +604,11 @@ formData.notes.base.forEach((n) => {
                         />
                         {n.imageUrl && (
                           <img
-<<<<<<< HEAD
+ 
                             src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
-=======
+  
                             src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
                             alt="Current note"
                             className="note-preview"
                             title="Current image"

@@ -37,11 +37,11 @@ export const CartProvider = ({ children }) => {
         return;
       }
 
-<<<<<<< HEAD
+ 
       const response = await axios.get('import.meta.env.VITE_API_URL/api/cart', {
-=======
+  
       const response = await axios.get('import.meta.env.VITE_API_URL/api/cart', {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart(response.data);
@@ -70,11 +70,11 @@ export const CartProvider = ({ children }) => {
       console.log('Adding to cart:', { productId, quantity, mlSize });
       
       const token = localStorage.getItem('token');
-<<<<<<< HEAD
+ 
       const response = await axios.post('import.meta.env.VITE_API_URL/api/cart/add', {
-=======
+  
       const response = await axios.post('import.meta.env.VITE_API_URL/api/cart/add', {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         productId,
         quantity,
         mlSize
@@ -102,11 +102,11 @@ export const CartProvider = ({ children }) => {
       console.log('Updating quantity:', itemId, quantity);
       
       const token = localStorage.getItem('token');
-<<<<<<< HEAD
+ 
       const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update/${itemId}`, {
-=======
+  
       const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update/${itemId}`, {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         quantity
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -128,11 +128,11 @@ export const CartProvider = ({ children }) => {
       console.log('Updating mlSize:', itemId, mlSize);
       
       const token = localStorage.getItem('token');
-<<<<<<< HEAD
+ 
       const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update-ml/${itemId}`, {
-=======
+  
       const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update-ml/${itemId}`, {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         mlSize
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -153,11 +153,11 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       
       const token = localStorage.getItem('token');
-<<<<<<< HEAD
+ 
       const response = await axios.delete(`import.meta.env.VITE_API_URL/api/cart/remove/${itemId}`, {
-=======
+  
       const response = await axios.delete(`import.meta.env.VITE_API_URL/api/cart/remove/${itemId}`, {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -176,11 +176,11 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       
       const token = localStorage.getItem('token');
-<<<<<<< HEAD
+ 
       await axios.delete('import.meta.env.VITE_API_URL/api/cart/clear', {
-=======
+  
       await axios.delete('import.meta.env.VITE_API_URL/api/cart/clear', {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
         headers: { Authorization: `Bearer ${token}` }
       });
       

@@ -37,11 +37,11 @@ export default function HomeAdmin() {
 const fetchHomeData = async () => {
   try {
     setLoading(true);
-<<<<<<< HEAD
+ 
     const response = await axios.get("import.meta.env.VITE_API_URL/api/home");
-=======
+  
     const response = await axios.get("import.meta.env.VITE_API_URL/api/home");
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
     const data = response.data || {};
     
     // Fix: Always exactly 5 items with proper numbering
@@ -72,13 +72,13 @@ const fetchHomeData = async () => {
 
     setCurrentImages({
       bannerImage: "", // STATIC - no preview needed
-<<<<<<< HEAD
+ 
       latestProducts: (data.latestProducts || []).slice(0,5).map(p => p?.image ? `import.meta.env.VITE_API_URL/${p.image}` : ""),
       occasions: (data.occasions || []).slice(0,5).map(o => o?.image ? `import.meta.env.VITE_API_URL/${o.image}` : "")
-=======
+  
       latestProducts: (data.latestProducts || []).slice(0,5).map(p => p?.image ? `import.meta.env.VITE_API_URL/${p.image}` : ""),
       occasions: (data.occasions || []).slice(0,5).map(o => o?.image ? `import.meta.env.VITE_API_URL/${o.image}` : "")
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
     });
     
   } catch (err) {
@@ -155,11 +155,11 @@ const handleSave = async () => {
       }
     });
 
-<<<<<<< HEAD
+ 
     const response = await axios.post("import.meta.env.VITE_API_URL/api/home", formDataToSend, {
-=======
+  
     const response = await axios.post("import.meta.env.VITE_API_URL/api/home", formDataToSend, {
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
+   
       headers: { "Content-Type": "multipart/form-data" }
     });
 

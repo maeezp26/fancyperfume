@@ -30,11 +30,8 @@ const AddProduct = () => {
     formData.append('price', product.price);
     formData.append('image', selectedFile);
 
-<<<<<<< HEAD
+
     axios.post('import.meta.env.VITE_API_URL/addProduct', formData)
-=======
-    axios.post('import.meta.env.VITE_API_URL/addProduct', formData)
->>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
       .then(response => {
         console.log("Product added successfully", response);
         alert("Product Added");
