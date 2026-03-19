@@ -20,7 +20,7 @@ export default function About() {
       try {
         setLoading(true);
 <<<<<<< HEAD
-        const res = await axios.get("http://localhost:5000/api/about");
+        const res = await axios.get("import.meta.env.VITE_API_URL/api/about");
 =======
         const res = await axios.get("import.meta.env.VITE_API_URL/api/about");
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -92,7 +92,7 @@ export default function About() {
           sections.map((section, index) => {
             const imgSrc = section.imageUrl
 <<<<<<< HEAD
-              ? `http://localhost:5000${section.imageUrl}`
+              ? `import.meta.env.VITE_API_URL${section.imageUrl}`
 =======
               ? `import.meta.env.VITE_API_URL${section.imageUrl}`
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9

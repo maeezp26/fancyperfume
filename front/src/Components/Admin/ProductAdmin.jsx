@@ -28,7 +28,7 @@ export default function ProductAdmin() {
   const [loading, setLoading] = useState(false);
 
 <<<<<<< HEAD
-  const API_URL = "http://localhost:5000/api/products";
+  const API_URL = "import.meta.env.VITE_API_URL/api/products";
 =======
   const API_URL = "import.meta.env.VITE_API_URL/api/products";
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -381,7 +381,7 @@ formData.notes.base.forEach((n) => {
                             onClick={() =>
                               handleImageClick(
 <<<<<<< HEAD
-                                `http://localhost:5000${prod.imageUrl}`
+                                `import.meta.env.VITE_API_URL${prod.imageUrl}`
 =======
                                 `import.meta.env.VITE_API_URL${prod.imageUrl}`
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -390,7 +390,7 @@ formData.notes.base.forEach((n) => {
                           >
                             <img
 <<<<<<< HEAD
-                              src={`http://localhost:5000${prod.imageUrl}`}
+                              src={`import.meta.env.VITE_API_URL${prod.imageUrl}`}
 =======
                               src={`import.meta.env.VITE_API_URL${prod.imageUrl}`}
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -433,7 +433,7 @@ formData.notes.base.forEach((n) => {
                                   {n.imageUrl ? (
                                     <img
 <<<<<<< HEAD
-                                      src={`http://localhost:5000${n.imageUrl}`}
+                                      src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
 =======
                                       src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -571,7 +571,7 @@ formData.notes.base.forEach((n) => {
                     <span>Current Image:</span>
                     <img
 <<<<<<< HEAD
-                      src={`http://localhost:5000${selectedProduct.imageUrl}`}
+                      src={`import.meta.env.VITE_API_URL${selectedProduct.imageUrl}`}
 =======
                       src={`import.meta.env.VITE_API_URL${selectedProduct.imageUrl}`}
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -605,7 +605,7 @@ formData.notes.base.forEach((n) => {
                         {n.imageUrl && (
                           <img
 <<<<<<< HEAD
-                            src={`http://localhost:5000${n.imageUrl}`}
+                            src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
 =======
                             src={`import.meta.env.VITE_API_URL${n.imageUrl}`}
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9

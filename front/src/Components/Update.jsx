@@ -17,7 +17,7 @@ import axios from 'axios';
 
     useEffect(() => {
 <<<<<<< HEAD
-      axios.get("http://localhost:5000/Admin/getUser/"+id)
+      axios.get("import.meta.env.VITE_API_URL/Admin/getUser/"+id)
 =======
       axios.get("import.meta.env.VITE_API_URL/Admin/getUser/"+id)
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -38,7 +38,7 @@ import axios from 'axios';
     const Update = (e) =>{
       e.preventDefault()
 <<<<<<< HEAD
-      axios.put("http://localhost:5000/Update/"+id, {name,email,num,city,uname,pass,conpass})
+      axios.put("import.meta.env.VITE_API_URL/Update/"+id, {name,email,num,city,uname,pass,conpass})
 =======
       axios.put("import.meta.env.VITE_API_URL/Update/"+id, {name,email,num,city,uname,pass,conpass})
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9

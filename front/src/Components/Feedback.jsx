@@ -34,7 +34,7 @@ export default function Feedback() {
     setLoading(true);
     try {
 <<<<<<< HEAD
-      await axios.post("http://localhost:5000/api/feedback/add", {
+      await axios.post("import.meta.env.VITE_API_URL/api/feedback/add", {
 =======
       await axios.post("import.meta.env.VITE_API_URL/api/feedback/add", {
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9

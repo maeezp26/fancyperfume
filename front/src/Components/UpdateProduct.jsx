@@ -16,7 +16,7 @@ const UpdateProduct = () => {
         const fetchProduct = async () => {
             try {
 <<<<<<< HEAD
-                const response = await axios.get(`http://localhost:5000/products/${id}`);
+                const response = await axios.get(`import.meta.env.VITE_API_URL/products/${id}`);
 =======
                 const response = await axios.get(`import.meta.env.VITE_API_URL/products/${id}`);
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
@@ -42,7 +42,7 @@ const UpdateProduct = () => {
     
         try {
 <<<<<<< HEAD
-            const response = await axios.put(`http://localhost:5000/products/update/${id}`, formData);
+            const response = await axios.put(`import.meta.env.VITE_API_URL/products/update/${id}`, formData);
 =======
             const response = await axios.put(`import.meta.env.VITE_API_URL/products/update/${id}`, formData);
 >>>>>>> 9a6e6a0cd91a21814504d1c7ca7d99642391e9b9
