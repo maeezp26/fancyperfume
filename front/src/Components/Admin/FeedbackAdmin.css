@@ -1,0 +1,162 @@
+/* FeedbackAdmin – luxury admin styling */
+
+.feedback-admin-container {
+  padding: 3rem 2rem 4rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+}
+
+/* Title */
+.feedback-admin-container h2 {
+  color: var(--accent-color);
+  margin-bottom: 2.2rem;
+  text-align: center;
+  font-size: 2.2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Status text (loading / empty) */
+.feedback-admin-status {
+  font-size: 1.1rem;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Card wrapper for table */
+.feedback-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--card-bg);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  padding: 1.2rem 1.2rem 1.4rem;
+}
+
+/* Hide inner scrollbar appearance but keep scroll */
+.feedback-table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.feedback-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.feedback-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+.feedback-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+/* Header */
+.feedback-table th {
+  padding: 1rem 0.9rem;
+  text-align: left;
+  background: var(--gradient-gold);
+  color: #120b05;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+/* Light theme override */
+html[data-theme="light"] .feedback-table th {
+  background: #f5f5f5;
+  color: #222;
+}
+
+/* Rows */
+.feedback-table td {
+  padding: 0.9rem 0.9rem;
+  text-align: left;
+  background-color: transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.95rem;
+  color: var(--text-color);
+  vertical-align: top;
+}
+
+.feedback-table tr:last-child td {
+  border-bottom: none;
+}
+
+.feedback-table tr:hover td {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Message cell */
+.feedback-message-cell {
+  max-width: 280px;
+  white-space: pre-wrap;
+}
+
+/* Stars */
+.admin-star {
+  color: #ffca28;
+  font-size: 1rem;
+}
+
+/* Delete button */
+.feedback-delete-btn {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background-color 0.2s ease, transform 0.15s ease,
+    box-shadow 0.15s ease;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.feedback-delete-btn:hover {
+  background-color: #c9302c;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .feedback-admin-container {
+    padding: 2.2rem 1.4rem 3rem;
+  }
+
+  .feedback-table th,
+  .feedback-table td {
+    font-size: 0.85rem;
+    padding: 0.75rem 0.7rem;
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  .feedback-admin-container {
+    padding: 1.8rem 1rem 2.6rem;
+  }
+
+  .feedback-admin-container h2 {
+    font-size: 1.9rem;
+  }
+
+  .feedback-table {
+    min-width: 650px;
+  }
+
+  .feedback-table th,
+  .feedback-table td {
+    font-size: 0.8rem;
+    padding: 0.65rem 0.6rem;
+  }
+}

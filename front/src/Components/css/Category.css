@@ -1,0 +1,496 @@
+/* Category.css - LUXURY CATEGORY PAGE */
+
+/* CATEGORY HERO */
+.luxury-category {
+  background: var(--gradient-dark);
+  min-height: 100vh;
+}
+
+.category-hero {
+  height: 40vh;
+  min-height: 300px;
+  background: linear-gradient(135deg, rgba(15,15,35,0.8) 0%, rgba(26,26,58,0.8) 100%), 
+              url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 10"><defs><radialGradient id="a" cx="50%" cy="0%" r="50%"><stop offset="0%" stop-color="%23D4AF37" stop-opacity="0.3"/><stop offset="100%" stop-opacity="0"/></radialGradient></defs><rect width="100" height="10" fill="url(%23a)"/></svg>');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.category-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-gold);
+  opacity: 0.1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  color: var(--text-primary);
+}
+
+.hero-title {
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 800;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+  letter-spacing: -2px;
+}
+
+.hero-subtitle {
+  font-size: 1.4rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* FILTERS */
+.filters-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.pill-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid var(--border-light);
+  border-radius: 50px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.pill-btn:hover,
+.pill-btn.active {
+  background: var(--gradient-gold);
+  border-color: var(--primary-gold);
+  color: var(--dark-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+}
+
+.sort-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sort-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  min-width: 280px;
+}
+
+.sort-dropdown label {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.sort-dropdown select {
+  background: var(--gradient-gold);
+  color: var(--dark-bg);
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  flex: 1;
+}
+
+.sort-dropdown select:hover {
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+}
+
+/* PRODUCTS GRID */
+.products-grid-section {
+  padding: 2rem 2rem 6rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.luxury-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.product-wrapper {
+  position: relative;
+}
+
+.luxury-product-card {
+  display: block;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  box-shadow: var(--shadow-glass);
+}
+
+.luxury-product-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.5);
+  border-color: var(--primary-gold);
+}
+
+.category-card-media {
+  position: relative;
+  height: 360px;           /* bigger height so card feels full */
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.category-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* already there – keep this */
+  display: block;         /* ensures no extra gaps */
+  border-radius: 0;       /* optional: remove rounding from image itself */
+}
+
+
+.luxury-product-card:hover .category-card-image {
+  transform: scale(1.08);
+}
+
+.product-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212,175,55,0.95) 0%, rgba(242,212,146,0.9) 100%);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.4s ease;
+}
+
+.luxury-product-card:hover .product-overlay {
+  opacity: 1;
+}
+
+.overlay-content {
+  text-align: center;
+  color: var(--dark-bg);
+}
+
+.overlay-content h3 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.quick-action {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  background: rgba(255,255,255,0.3);
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+}
+
+.product-badges {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.badge.premium {
+  background: rgba(212,175,55,0.2);
+  color: var(--primary-gold);
+  border: 1px solid var(--primary-gold);
+}
+
+.badge.celebrity {
+  background: rgba(74,144,226,0.2);
+  color: #4ea0e6;
+  border: 1px solid #4ea0e6;
+}
+
+.product-info {
+  padding: 2rem;
+}
+
+.product-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.product-categories {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+.product-price {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary-gold);
+}
+
+/* PRODUCT ACTIONS */
+/* PRODUCT ACTIONS */
+.product-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+
+
+.product-wrapper:hover .product-actions {
+  opacity: 1;
+  bottom: 1.8rem;
+  /* transform: translateX(-50%); */
+}
+
+
+
+.whatsapp-btn {
+   width: 50px;                 /* was 44px */
+  height: 50px;
+  border-radius: 40px;
+  border: none;
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+}
+
+.whatsapp-btn img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
+  object-fit: contain;
+  display: block;
+  /* comment this out if it makes the icon disappear */
+  /* filter: brightness(0) invert(1); */
+}
+
+
+
+
+.whatsapp-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 35px rgba(37, 211, 102, 0.6);
+}
+
+
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 6rem 2rem;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 8rem;
+  margin-bottom: 2rem;
+  opacity: 0.7;
+}
+
+.empty-state h2 {
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.empty-cta {
+  margin-top: 2rem;
+  padding: 1rem 2.5rem;
+  background: var(--gradient-gold);
+  color: var(--dark-bg);
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.empty-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.5);
+}
+
+/* LOADING */
+.category-loading {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  color: var(--text-primary);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid var(--border-light);
+  border-top: 4px solid var(--primary-gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* ✅ Buy Now Button for Category Cards */
+.buy-now-small-btn {
+  padding: 0.6rem 1.2rem;
+  background: var(--gradient-gold);
+  color: var(--dark-bg);
+  border: none;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+  white-space: nowrap;
+}
+
+.buy-now-small-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+}
+
+.product-actions.inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .product-actions.inline {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .buy-now-small-btn {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}
+
+
+@media (min-width: 1200px) {
+  .category-card-media {
+    height: 380px;
+  }
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .luxury-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-container {
+    padding: 2rem 1.5rem;
+  }
+  
+  .category-pills {
+    gap: 0.75rem;
+  }
+  
+  .pill-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .luxury-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .products-grid-section {
+    padding: 1.5rem 1rem 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-hero {
+    height: 35vh;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .luxury-products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sort-container {
+    justify-content: center;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

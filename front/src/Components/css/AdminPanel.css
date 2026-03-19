@@ -1,0 +1,96 @@
+/* General Styles */
+.admin-fancy-panel {
+  display: flex;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar Styles */
+.sidebar-fancy {
+  width: 20%;
+  background-color: #333;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 15px;
+}
+
+.sidebar-button-fancy {
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: left;
+  padding: 10px 0;
+}
+
+.sidebar-button-fancy:hover {
+  background-color: #555;
+}
+
+/* Content Styles */
+.content-fancy {
+  width: 80%;
+  padding: 20px;
+}
+
+.header-fancy {
+  margin-bottom: 20px;
+  font-size: 3rem;
+  color: #333;
+}
+
+/* Form Styles */
+.form-fancy label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.input-fancy {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.button-fancy {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button-fancy:hover {
+  background-color: #0056b3;
+}
+
+/* Table Styles */
+.table-fancy {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table-header-fancy,
+.table-cell-fancy {
+  padding: 10px;
+  color: black;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  font-size: 2rem;
+}
+
+.table-header-fancy {
+  color: black;
+  background-color: #f4f4f4;
+}
+
+.image-fancy {
+  max-width: 50px;
+  border-radius: 5px;
+}

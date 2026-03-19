@@ -1,0 +1,45 @@
+.right-section .tblDisplay{
+    font-size:25px;
+}
+
+.btnUpdate{
+    background-color: rgb(22, 76, 211);
+}
+
+.btnDelete{
+    background-color: rgb(193, 17, 17);
+}
+
+.right-section h2{
+    font-size: 3.5rem;
+}
+
+.action{
+    height: 40  px;
+    width: 100px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.updateBtn{
+    background-color: rgb(87, 87, 222);
+    color: white;
+}
+.updateBtn:hover{
+    background-color: transparent;
+    color: rgb(87, 87, 222);
+    border: 1px solid rgb(87, 87, 222);
+}
+
+.deleteBtn{
+    background-color: red;
+    color: white;
+    
+}
+
+.deleteBtn:hover{
+    background-color: transparent;
+    color: red;
+    border: 1px solid red;
+    
+}
