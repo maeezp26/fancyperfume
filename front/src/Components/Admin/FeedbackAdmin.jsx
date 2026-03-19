@@ -12,7 +12,6 @@ export default function FeedbackAdmin() {
  
         const response = await axios.get("import.meta.env.VITE_API_URL/api/feedback");
   
-        const response = await axios.get("import.meta.env.VITE_API_URL/api/feedback");
    
         setFeedbacks(response.data || []);
       } catch (error) {
