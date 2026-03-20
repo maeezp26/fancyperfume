@@ -72,11 +72,11 @@ export default function Footer() {
             <div className="contact-info">
               <div className="contact-item">
                 <span className="contact-icon">📧</span>
-                <span>hello@fancyperfume.com</span>
+                <span>fancyperfume18@gmail.com</span>
               </div>
               <div className="contact-item">
                 <span className="contact-icon">📱</span>
-                <span>+91 98765 43210</span>
+                <span>+91 76009 35055</span>
               </div>
             </div>
           </div>
