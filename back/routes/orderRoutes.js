@@ -72,16 +72,9 @@ router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-app.delete('/api/orders/clear', authMiddleware, async (req, res) => {
+router.delete('/clear', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    // optional: only admin allowed
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    const Order = require('./models/Order');
-    await Order.deleteMany({}); // 🔥 deletes ALL orders
-
+    await Order.deleteMany({});
     res.json({ success: true, message: 'All orders deleted' });
   } catch (err) {
     console.error(err);

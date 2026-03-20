@@ -25,18 +25,22 @@ const filteredOrders = orders.filter(order => {
 });
 
 const handleClearOrders = async () => {
-  if (!window.confirm("Delete ALL orders?")) return;
+  if (!window.confirm("Delete ALL orders permanently?")) return;
 
-  const token = localStorage.getItem('token');
+  try {
+    const token = localStorage.getItem("token");
 
-  await fetch(`${import.meta.env.VITE_API_URL}/api/orders/clear`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
+    await fetch(`${import.meta.env.VITE_API_URL}/api/orders/clear`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  setOrders([]); // clear UI
+    setOrders([]); // update UI instantly
+  } catch (err) {
+    console.error("Clear orders error:", err);
+  }
 };
 
   useEffect(() => {
