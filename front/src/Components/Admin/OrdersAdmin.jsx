@@ -24,6 +24,21 @@ const filteredOrders = orders.filter(order => {
   return true;
 });
 
+const handleClearOrders = async () => {
+  if (!window.confirm("Delete ALL orders?")) return;
+
+  const token = localStorage.getItem('token');
+
+  await fetch(`${import.meta.env.VITE_API_URL}/api/orders/clear`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  setOrders([]); // clear UI
+};
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -88,6 +103,8 @@ if (!user || user.role !== 'admin') {
     <option value="365d">Last Year</option>
   </select>
 </div>
+
+<button onClick={handleClearOrders}>Clear All Orders</button>
 
 </div>
 
