@@ -19,7 +19,7 @@ export const CartProvider = ({ children }) => {
 
   // ✅ FIXED: Only call fetchCart when authenticated AND has token
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated()) {
       fetchCart();
     } else {
       setCart({ items: [], totalAmount: 0 });
@@ -33,18 +33,20 @@ export const CartProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (!token) {
         console.log('No token found, skipping cart fetch');
-        setCart({ items: [], totalAmount: 0 });
+        setCart({
+  items: response.data?.items || [],
+  totalAmount: response.data?.totalAmount || 0
+});
         return;
       }
 
- 
-      const response = await axios.get('import.meta.env.VITE_API_URL/api/cart', {
-  
-      const response = await axios.get('import.meta.env.VITE_API_URL/api/cart', {
-   
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCart(response.data);
+      setCart({
+  items: response.data?.items || [],
+  totalAmount: response.data?.totalAmount || 0
+});
     } catch (error) {
       // ✅ SILENTLY handle 401 - treat as empty cart (no console.error)
       if (error.response?.status === 401) {
@@ -70,11 +72,7 @@ export const CartProvider = ({ children }) => {
       console.log('Adding to cart:', { productId, quantity, mlSize });
       
       const token = localStorage.getItem('token');
- 
-      const response = await axios.post('import.meta.env.VITE_API_URL/api/cart/add', {
-  
-      const response = await axios.post('import.meta.env.VITE_API_URL/api/cart/add', {
-   
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/add`, {
         productId,
         quantity,
         mlSize
@@ -102,11 +100,7 @@ export const CartProvider = ({ children }) => {
       console.log('Updating quantity:', itemId, quantity);
       
       const token = localStorage.getItem('token');
- 
-      const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update/${itemId}`, {
-  
-      const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update/${itemId}`, {
-   
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/cart/update/${itemId}`, {
         quantity
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -128,11 +122,7 @@ export const CartProvider = ({ children }) => {
       console.log('Updating mlSize:', itemId, mlSize);
       
       const token = localStorage.getItem('token');
- 
-      const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update-ml/${itemId}`, {
-  
-      const response = await axios.put(`import.meta.env.VITE_API_URL/api/cart/update-ml/${itemId}`, {
-   
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/cart/update-ml/${itemId}`, {
         mlSize
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -153,11 +143,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       
       const token = localStorage.getItem('token');
- 
-      const response = await axios.delete(`import.meta.env.VITE_API_URL/api/cart/remove/${itemId}`, {
-  
-      const response = await axios.delete(`import.meta.env.VITE_API_URL/api/cart/remove/${itemId}`, {
-   
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/remove/${itemId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -176,11 +162,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       
       const token = localStorage.getItem('token');
- 
-      await axios.delete('import.meta.env.VITE_API_URL/api/cart/clear', {
-  
-      await axios.delete('import.meta.env.VITE_API_URL/api/cart/clear', {
-   
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/clear`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -194,10 +176,9 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const getCartItemCount = () => {
-    return cart.items.reduce((total, item) => total + item.quantity, 0);
-  };
-
+const getCartItemCount = () => {
+  return cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+};
   const getTotalAmount = () => {
     return cart.totalAmount;
   };

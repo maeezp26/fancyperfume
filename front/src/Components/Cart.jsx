@@ -45,7 +45,7 @@ export default function Cart() {
   };
 
  // Not logged in
-if (!isAuthenticated){
+if (!isAuthenticated()){
   return (
     <main className="luxury-cart">
       <section className="cart-hero">
@@ -138,16 +138,11 @@ if (!cart || cart.items.length === 0) {
               <div className="luxury-cart-item" key={item._id}>
                 <div className="item-image">
                   <img
-                    src={
-                      item.product.imageUrl.startsWith('http')
-                        ? item.product.imageUrl
-
-                        : `import.meta.env.VITE_API_URL${item.product.imageUrl}`
-                    }
-                    alt={item.product.name}
-                    onError={(e) => {
-                      e.target.src = '/placeholder-image.jpg';
-                    }}
+                   src={
+  item.product.imageUrl.startsWith('http')
+    ? item.product.imageUrl
+    : `${import.meta.env.VITE_API_URL}${item.product.imageUrl}`
+}
                   />
                 </div>
 

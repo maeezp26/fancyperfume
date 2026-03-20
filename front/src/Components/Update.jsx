@@ -16,11 +16,7 @@ import axios from 'axios';
     const navigate = useNavigate()
 
     useEffect(() => {
- 
       axios.get("import.meta.env.VITE_API_URL/Admin/getUser/"+id)
-  
-      axios.get("import.meta.env.VITE_API_URL/Admin/getUser/"+id)
-   
         .then(result =>{ 
           console.log(result)
           setName(result.data.name)
@@ -37,11 +33,7 @@ import axios from 'axios';
 
     const Update = (e) =>{
       e.preventDefault()
- 
       axios.put("import.meta.env.VITE_API_URL/Update/"+id, {name,email,num,city,uname,pass,conpass})
-  
-      axios.put("import.meta.env.VITE_API_URL/Update/"+id, {name,email,num,city,uname,pass,conpass})
-   
       .then(result => {
         console.log(result)
         navigate('/Admin')

@@ -30,10 +30,7 @@ const razorpay = new Razorpay({
 
 // Middlewares
 
-app.use(cors({
-  origin: "https://your-frontend.vercel.app",
-  credentials: true
-}));
+app.use(cors());
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
- 
 import { useNavigate } from "react-router-dom";
 import "./css/MyOrders.css";
 
 export default function MyOrders() {
   const { token, user } = useAuth();
   const navigate = useNavigate();
-  
-   
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -17,21 +14,15 @@ export default function MyOrders() {
 
 
 useEffect(() => {
- 
   if (!token) {
     setLoading(false);
     return;
   }
-  
-  if (!token) return;
-   
 
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
-  
         "import.meta.env.VITE_API_URL/api/orders",
-   
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -44,10 +35,7 @@ useEffect(() => {
         "Failed to fetch orders",
         err.response?.data || err.message
       );
- 
       setError(err.response?.data?.message || "Failed to load orders");
-  
-   
     } finally {
       setLoading(false);
     }
@@ -58,7 +46,6 @@ useEffect(() => {
 
 
 
- 
   if (!user) {
     return (
       <main className="luxury-checkout">
@@ -84,8 +71,6 @@ useEffect(() => {
     );
   }
 
-  
-   
   if (loading) {
     return <div className="orders-loading">Loading your orders...</div>;
   }
@@ -99,11 +84,8 @@ useEffect(() => {
         </p>
       </div>
 
- 
       {error && <div className="no-orders">{error}</div>}
 
-  
-   
       {orders.length === 0 ? (
         <div className="no-orders">
           You haven’t placed any orders yet.
@@ -132,9 +114,7 @@ useEffect(() => {
                   <div className="order-item" key={idx}>
                      {item.product?.image && (
         <img
-  
-          src={`import.meta.env.VITE_API_URL/uploads/${item.product.image}`}
-   
+          src={`${import.meta.env.VITE_API_URL}/uploads/${item.product.image}`}
           alt={item.product.name}
           className="order-item-img"
         />

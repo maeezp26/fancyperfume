@@ -33,7 +33,6 @@ export default function Feedback() {
 
     setLoading(true);
     try {
-
       await axios.post("import.meta.env.VITE_API_URL/api/feedback/add", {
         ...formData,
         rating,
