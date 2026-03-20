@@ -27,7 +27,7 @@ export default function ProductAdmin() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = "import.meta.env.VITE_API_URL/api/products";
+ const API_URL = `${import.meta.env.VITE_API_URL}/api/products`;
 
   useEffect(() => {
     fetchProducts();
