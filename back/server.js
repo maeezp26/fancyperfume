@@ -31,11 +31,19 @@ const razorpay = new Razorpay({
 // Middlewares
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://your-frontend.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: function(origin, callback) {
+    const allowed = [
+      "http://localhost:5173",
+      "https://fancyperfume.vercel.app"
+    ];
+    
+    // allow requests with no origin (like mobile apps / postman)
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
