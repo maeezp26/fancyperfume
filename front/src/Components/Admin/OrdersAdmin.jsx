@@ -90,24 +90,29 @@ if (!user || user.role !== 'admin') {
   return (
     <main className="orders-admin-page">
       <div className="admin-container">
-       <div className="admin-header">
+      <div className="admin-header">
   <h1 className="orders-title">Recent Orders ({filteredOrders.length})</h1>
-  
-<div className="dropdown-pill">
-  <select
-    value={dateFilter}
-    onChange={(e) => setDateFilter(e.target.value)}
-  >
-    <option value="30d">Last 30 Days</option>
-    <option value="90d">Last 90 Days</option>
-    <option value="365d">Last Year</option>
-  </select>
+
+  <div className="admin-actions">
+    <button 
+      className="admin-btn admin-btn-danger"
+      onClick={handleClearOrders}
+    >
+      🗑 Clear Orders
+    </button>
+
+    <div className="dropdown-pill">
+      <select
+        value={dateFilter}
+        onChange={(e) => setDateFilter(e.target.value)}
+      >
+        <option value="30d">Last 30 Days</option>
+        <option value="90d">Last 90 Days</option>
+        <option value="365d">Last Year</option>
+      </select>
+    </div>
+  </div>
 </div>
-
-<button onClick={handleClearOrders}>Clear All Orders</button>
-
-</div>
-
 
 
         {orders.length === 0 ? (
