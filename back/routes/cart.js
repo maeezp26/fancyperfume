@@ -8,8 +8,7 @@ const router = express.Router();
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id })
-      .populate('items.product', 'name price imageUrl category')
-      .exec();
+      .populate('items.product', 'name price imageUrl category');
 
     if (!cart) {
       return res.json({ items: [], totalAmount: 0 });

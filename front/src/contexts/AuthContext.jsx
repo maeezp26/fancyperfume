@@ -1,22 +1,20 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken]     = useState(() => localStorage.getItem('token'));
 
-  // Set up axios defaults
+  // Set axios Authorization header whenever token changes
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -25,20 +23,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Check if user is logged in on app start
+  // Verify token with backend on app start
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      
+      const storedUser  = localStorage.getItem('user');
+
       if (storedToken && storedUser) {
         try {
-          // Verify token with backend
           const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/profile`);
           setUser(response.data.user);
           setToken(storedToken);
-        } catch (error) {
-          // Token is invalid, clear storage
+        } catch {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUser(null);
@@ -47,7 +43,6 @@ export const AuthProvider = ({ children }) => {
       }
       setLoading(false);
     };
-
     checkAuth();
   }, []);
 
@@ -55,18 +50,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, credentials);
       const { token: newToken, user: userData } = response.data;
-      
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(userData));
       setToken(newToken);
       setUser(userData);
-      
       return { success: true, user: userData };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
-      };
+      return { success: false, error: error.response?.data?.message || 'Login failed' };
     }
   };
 
@@ -74,50 +64,32 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, userData);
       const { token: newToken, user: newUser } = response.data;
-      
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));
       setToken(newToken);
       setUser(newUser);
-      
       return { success: true, user: newUser };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
-      };
+      return { success: false, error: error.response?.data?.message || 'Registration failed' };
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
     delete axios.defaults.headers.common['Authorization'];
-  };
+  }, []);
 
- const isAdmin = () => {
-    return user && user.role === 'admin';
-  };
-
-  const isAuthenticated = () => {
-    return !!user && !!token;
-  };
-
-  const value = {
-    user,
-    token,
-    loading,
-    login,
-    register,
-    logout,
-    isAdmin,
-    isAuthenticated
-  };
+  // FIX: use useCallback so these functions are stable references.
+  // Without this, any context consumer that depends on these in a useEffect
+  // will re-run infinitely (was causing the CartContext infinite loop).
+  const isAdmin = useCallback(() => !!(user && user.role === 'admin'), [user]);
+  const isAuthenticated = useCallback(() => !!(user && token), [user, token]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAdmin, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

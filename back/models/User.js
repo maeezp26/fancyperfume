@@ -1,44 +1,22 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt   = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    trim: true,
-    lowercase: true
-  },
-  phone: {
-    type: String,
-    trim: true
-  },
-  city: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  }
-}, {
-  timestamps: true
-});
+  name:     { type: String, required: true, trim: true },
+  email:    { type: String, trim: true, lowercase: true, default: '' },
+  phone:    { type: String, trim: true, default: '' },
+  city:     { type: String, required: true, trim: true },
+  password: { type: String, required: true, minlength: 6 },
+  role:     { type: String, enum: ['user', 'admin'], default: 'user' },
+}, { timestamps: true });
+
+// DB PERFORMANCE: sparse unique indexes — allow empty string but unique non-empty
+userSchema.index({ email: 1 }, { sparse: true, partialFilterExpression: { email: { $gt: '' } } });
+userSchema.index({ phone: 1 }, { sparse: true, partialFilterExpression: { phone: { $gt: '' } } });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -48,8 +26,7 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 

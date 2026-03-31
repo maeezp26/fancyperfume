@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -6,198 +6,138 @@ const CartContext = createContext();
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error('useCart must be used within a CartProvider');
   return context;
 };
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({ items: [], totalAmount: 0 });
   const [loading, setLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
-  // ✅ FIXED: Only call fetchCart when authenticated AND has token
+  // FIX #1: Depend on `user` (changes only on login/logout), NOT on
+  // `isAuthenticated` function reference — that changes every render → infinite loop.
   useEffect(() => {
     if (isAuthenticated()) {
       fetchCart();
     } else {
       setCart({ items: [], totalAmount: 0 });
     }
-  }, [isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    // FIX #2: original code referenced `response.data` BEFORE the axios call
+    // when token was missing → ReferenceError crash. Now just bail early.
+    if (!token) {
+      setCart({ items: [], totalAmount: 0 });
+      return;
+    }
     try {
       setLoading(true);
-
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, skipping cart fetch');
-        setCart({
-  items: response.data?.items || [],
-  totalAmount: response.data?.totalAmount || 0
-});
-        return;
-      }
-
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCart({
-  items: response.data?.items || [],
-  totalAmount: response.data?.totalAmount || 0
-});
+      setCart({ items: response.data?.items || [], totalAmount: response.data?.totalAmount || 0 });
     } catch (error) {
-      // ✅ SILENTLY handle 401 - treat as empty cart (no console.error)
-      if (error.response?.status === 401) {
-        console.log('401 - No cart access, treating as empty cart');
-        setCart({ items: [], totalAmount: 0 });
-        return;
-      }
-      // Only log other errors
-      console.error('Cart fetch error (non-401):', error.response?.data || error.message);
+      if (error.response?.status === 401) { setCart({ items: [], totalAmount: 0 }); return; }
+      console.error('Cart fetch error:', error.response?.data || error.message);
       setCart({ items: [], totalAmount: 0 });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const addToCart = async (productId, quantity = 1, mlSize = 3) => {
-    if (!isAuthenticated) {
-      throw new Error('Please login to add items to cart');
-    }
-
+    // FIX #3: isAuthenticated is a FUNCTION — must call it with ()
+    if (!isAuthenticated()) throw new Error('Please login to add items to cart');
     try {
       setLoading(true);
-      console.log('Adding to cart:', { productId, quantity, mlSize });
-      
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/cart/add`, {
-        productId,
-        quantity,
-        mlSize
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      console.log('Add to cart response:', response.data);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/cart/add`,
+        { productId, quantity, mlSize },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setCart(response.data.cart);
       return { success: true, message: 'Item added to cart' };
     } catch (error) {
       console.error('Error adding to cart:', error.response?.data || error.message);
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Failed to add item to cart' 
-      };
-    } finally {
-      setLoading(false);
-    }
+      return { success: false, message: error.response?.data?.message || 'Failed to add item to cart' };
+    } finally { setLoading(false); }
   };
 
   const updateQuantity = async (itemId, quantity) => {
     try {
       setLoading(true);
-      console.log('Updating quantity:', itemId, quantity);
-      
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/cart/update/${itemId}`, {
-        quantity
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/cart/update/${itemId}`,
+        { quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setCart(response.data.cart);
       return { success: true };
     } catch (error) {
       console.error('Error updating quantity:', error.response?.data || error.message);
       return { success: false };
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const updateMlSize = async (itemId, mlSize) => {
     try {
       setLoading(true);
-      console.log('Updating mlSize:', itemId, mlSize);
-      
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/cart/update-ml/${itemId}`, {
-        mlSize
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/cart/update-ml/${itemId}`,
+        { mlSize },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setCart(response.data.cart);
       return { success: true };
     } catch (error) {
       console.error('Error updating mlSize:', error.response?.data || error.message);
       return { success: false };
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const removeFromCart = async (itemId) => {
     try {
       setLoading(true);
-      
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/remove/${itemId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/cart/remove/${itemId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setCart(response.data.cart);
       return { success: true };
     } catch (error) {
       console.error('Error removing from cart:', error.response?.data || error.message);
       return { success: false };
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const clearCart = async () => {
     try {
       setLoading(true);
-      
       const token = localStorage.getItem('token');
       await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/clear`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
       setCart({ items: [], totalAmount: 0 });
       return { success: true };
     } catch (error) {
       console.error('Error clearing cart:', error.response?.data || error.message);
       return { success: false };
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-const getCartItemCount = () => {
-  return cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
-};
-  const getTotalAmount = () => {
-    return cart.totalAmount;
-  };
-
-  const value = {
-    cart,
-    loading,
-    addToCart,
-    updateQuantity,
-    updateMlSize,
-    removeFromCart,
-    clearCart,
-    fetchCart,
-    getCartItemCount,
-    getTotalAmount
-  };
+  const getCartItemCount = () => cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+  const getTotalAmount = () => cart.totalAmount;
 
   return (
-    <CartContext.Provider value={value}>
+    <CartContext.Provider value={{ cart, loading, addToCart, updateQuantity, updateMlSize, removeFromCart, clearCart, fetchCart, getCartItemCount, getTotalAmount }}>
       {children}
     </CartContext.Provider>
   );

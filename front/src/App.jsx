@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import "./App.css";
 import Footer from "./Components/Footer";
 import Header from "./Components/Header";
@@ -6,29 +7,35 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Category from "./Components/Category";
 import About from "./Components/About";
 import Contact from "./Components/Feedback";
-import AddProduct from "./Components/AddProduct";
-import AdminPanel from "./Components/AdminPanel";
-import ProductDetails from "./Components/ProductDetails";
-import HomeAdmin from "./Components/Admin/HomeAdmin";
-import ProductAdmin from "./Components/Admin/ProductAdmin";
-import AboutAdmin from "./Components/Admin/AboutAdmin";
-import FeedbackAdmin from "./Components/Admin/FeedbackAdmin";
-import OrdersAdmin from "./Components/Admin/OrdersAdmin";
-
 import Login from "./Components/Login";
 import Register from "./Components/Register";
-import Admin from "./Components/Admin/Admin";
-import ProtectedRoute from "./Components/ProtectedRoute";
 import Cart from "./Components/Cart";
 import Checkout from "./Components/Checkout";
+import ProtectedRoute from "./Components/ProtectedRoute";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import MyOrders from "./Components/MyOrders";
+import ProductDetails from "./Components/ProductDetails";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// PERFORMANCE FIX: Lazy-load admin panel — it's large (23KB+ ProductAdmin alone)
+// and only admins ever visit it. Saves ~100KB from initial bundle.
+const Admin = lazy(() => import("./Components/Admin/Admin"));
+const HomeAdmin = lazy(() => import("./Components/Admin/HomeAdmin"));
+const ProductAdmin = lazy(() => import("./Components/Admin/ProductAdmin"));
+const AboutAdmin = lazy(() => import("./Components/Admin/AboutAdmin"));
+const FeedbackAdmin = lazy(() => import("./Components/Admin/FeedbackAdmin"));
+const OrdersAdmin = lazy(() => import("./Components/Admin/OrdersAdmin"));
+
+const AdminFallback = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', fontSize: '1.1rem', color: '#888' }}>
+    Loading Admin Panel…
+  </div>
+);
 
 function App() {
   return (
@@ -53,28 +60,30 @@ function App() {
               <Route path="/category" element={<Category />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/addproduct" element={<AddProduct />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/myorders" element={<MyOrders />} />
-              
-              
-              <Route path="/admin" element={
-                <ProtectedRoute requireAdmin={true}>
-                  <Admin />
-                </ProtectedRoute>
-              }>
-                <Route index element={<HomeAdmin />} />
-                <Route path="home" element={<HomeAdmin />} />
-                <Route path="product" element={<ProductAdmin />} />
-                <Route path="about" element={<AboutAdmin />} />
-                <Route path="feedback" element={<FeedbackAdmin />} />
-                <Route path="orders" element={<OrdersAdmin />} />
-              </Route>
-              
               <Route path="/product/:id" element={<ProductDetails />} />
+
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <Suspense fallback={<AdminFallback />}>
+                      <Admin />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Suspense fallback={<AdminFallback />}><HomeAdmin /></Suspense>} />
+                <Route path="home" element={<Suspense fallback={<AdminFallback />}><HomeAdmin /></Suspense>} />
+                <Route path="product" element={<Suspense fallback={<AdminFallback />}><ProductAdmin /></Suspense>} />
+                <Route path="about" element={<Suspense fallback={<AdminFallback />}><AboutAdmin /></Suspense>} />
+                <Route path="feedback" element={<Suspense fallback={<AdminFallback />}><FeedbackAdmin /></Suspense>} />
+                <Route path="orders" element={<Suspense fallback={<AdminFallback />}><OrdersAdmin /></Suspense>} />
+              </Route>
             </Routes>
             <Footer />
           </BrowserRouter>

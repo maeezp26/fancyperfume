@@ -214,7 +214,7 @@ export default function Checkout() {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login again');
 
-      const orderRes = await fetch('/api/payment/order', {
+      const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -253,7 +253,7 @@ export default function Checkout() {
         theme: { color: '#D4AF37' },
         handler: async function (response) {
           try {
-            const verifyRes = await fetch('/api/payment/verify', {
+            const verifyRes = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/verify`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
