@@ -617,3 +617,30 @@
     backdrop-filter: blur(20px);
   }
 }
+
+/* Fixes for direct URL access & breadcrumb */
+.breadcrumb-link {
+  background: none;
+  border: none;
+  color: #d4af37;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.breadcrumb-link:hover { opacity: 0.8; }
+
+.back-btn {
+  margin-top: 1.5rem;
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(135deg, #d4af37, #a07d1c);
+  border: none;
+  border-radius: 10px;
+  color: #1a1a2e;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.back-btn:hover { opacity: 0.85; }

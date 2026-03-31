@@ -2,47 +2,34 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./css/HeaderFooter.css";
 import "./css/Feedback.css";
-import feedbackImage from "./img/k (1).jpg";
+
+const STARS = [1, 2, 3, 4, 5];
 
 export default function Feedback() {
-  const [rating, setRating] = useState(0);
-  const [formData, setFormData] = useState({
-    name: "",
-    emailOrPhone: "",
-    city: "",
-    message: "",
-  });
-  const [loading, setLoading] = useState(false);
+  const [rating, setRating]       = useState(0);
+  const [hovered, setHovered]     = useState(0);
+  const [formData, setFormData]   = useState({ name: "", emailOrPhone: "", city: "", message: "" });
+  const [loading, setLoading]     = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-
-  const handleStarClick = (index) => {
-    setRating(index + 1);
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (rating === 0) {
-      alert("Please select a rating.");
-      return;
-    }
-
+    if (rating === 0) { alert("Please select a rating."); return; }
     setLoading(true);
     try {
-      await axios.post("import.meta.env.VITE_API_URL/api/feedback/add", {
-        ...formData,
-        rating,
-      });
+      // FIX: was literal string — now correct template literal
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/add`, { ...formData, rating });
       setSubmitSuccess(true);
       setFormData({ name: "", emailOrPhone: "", city: "", message: "" });
       setRating(0);
-      setTimeout(() => setSubmitSuccess(false), 5000);
+      setTimeout(() => setSubmitSuccess(false), 6000);
     } catch (error) {
-      alert("Error submitting feedback. Try again.");
+      alert("Error submitting feedback. Please try again.");
       console.error(error);
     } finally {
       setLoading(false);
@@ -51,132 +38,91 @@ export default function Feedback() {
 
   return (
     <main className="luxury-feedback">
-      {/* Hero Header */}
+      {/* Hero */}
       <section className="feedback-hero">
         <div className="hero-content">
+          <div className="hero-icon">✍️</div>
           <h1 className="hero-title">Share Your Experience</h1>
-          <p className="hero-subtitle">
-            Your feedback helps us craft better fragrances
-          </p>
+          <p className="hero-subtitle">Your feedback helps us craft better fragrances</p>
         </div>
       </section>
 
-      <div className="feedback-container">
-        {/* Left Visual Section */}
-        <div className="visual-section">
-          <div className="image-container">
-            <img src={feedbackImage} alt="Customer Experience" />
-            <div className="image-overlay">
-              <div className="overlay-content">
-                <div className="rating-display">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="star filled">★</span>
-                  ))}
-                </div>
-                <p>Thank you for being part of our fragrance journey</p>
-              </div>
-            </div>
+      <div className="feedback-center-wrap">
+        {submitSuccess ? (
+          <div className="success-card">
+            <div className="success-glow"></div>
+            <div className="success-icon-large">🎉</div>
+            <h2>Thank You!</h2>
+            <p>Your feedback has been received.<br />We truly appreciate your time!</p>
+            <button className="reset-btn" onClick={() => setSubmitSuccess(false)}>
+              Give More Feedback
+            </button>
           </div>
-        </div>
+        ) : (
+          <div className="feedback-form-card">
+            <h2 className="form-card-title">Write a Review</h2>
 
-        {/* Right Form Section */}
-        <div className="form-section">
-          {submitSuccess ? (
-            <div className="success-message">
-              <div className="success-icon">✅</div>
-              <h2>Thank You!</h2>
-              <p>Your feedback has been received. We truly appreciate your time!</p>
-              <button 
-                className="reset-btn"
-                onClick={() => setSubmitSuccess(false)}
-              >
-                Give More Feedback
-              </button>
+            {/* Star Rating — prominent */}
+            <div className="rating-section">
+              <p className="rating-label">How would you rate us?</p>
+              <div className="big-star-row">
+                {STARS.map(star => (
+                  <button
+                    type="button"
+                    key={star}
+                    className={`big-star ${star <= (hovered || rating) ? 'active' : ''}`}
+                    onMouseEnter={() => setHovered(star)}
+                    onMouseLeave={() => setHovered(0)}
+                    onClick={() => setRating(star)}
+                    aria-label={`Rate ${star} stars`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <p className="rating-label-text">
+                  {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent!'][rating]}
+                </p>
+              )}
             </div>
-          ) : (
-            <form id="feedback-form" className="luxury-form" onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label>Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Enter your name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
 
-              <div className="form-group">
-                <label>Email or Phone</label>
-                <input
-                  type="text"
-                  name="emailOrPhone"
-                  placeholder="Enter email or phone number"
-                  value={formData.emailOrPhone}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-row">
+            <form className="luxury-form" onSubmit={handleSubmit}>
+              <div className="form-row-2">
                 <div className="form-group">
-                  <label>City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    placeholder="Your city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                  />
+                  <label>Full Name <span className="req">*</span></label>
+                  <input type="text" name="name" placeholder="Your name"
+                    value={formData.name} onChange={handleChange} required />
                 </div>
-                <div className="rating-group">
-                  <label>Rating</label>
-                  <div className="star-rating">
-                    {[...Array(5)].map((_, index) => (
-                      <span
-                        key={index}
-                        className={`star ${index < rating ? "filled" : ""}`}
-                        onClick={() => handleStarClick(index)}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  {rating === 0 && <p className="rating-hint">Click a star to rate</p>}
+                <div className="form-group">
+                  <label>City <span className="req">*</span></label>
+                  <input type="text" name="city" placeholder="Your city"
+                    value={formData.city} onChange={handleChange} required />
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Feedback Message</label>
-                <textarea
-                  name="message"
-                  placeholder="Share your experience with our fragrances..."
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows="6"
-                />
+                <label>Email or Phone <span className="req">*</span></label>
+                <input type="text" name="emailOrPhone" placeholder="Enter email or phone number"
+                  value={formData.emailOrPhone} onChange={handleChange} required />
               </div>
 
-              <button 
-                type="submit" 
-                className="submit-btn"
-                disabled={loading || rating === 0}
-              >
+              <div className="form-group">
+                <label>Your Feedback <span className="req">*</span></label>
+                <textarea name="message" placeholder="Share your experience with our fragrances…"
+                  value={formData.message} onChange={handleChange} required rows="5" />
+              </div>
+
+              <button type="submit" className="submit-btn" disabled={loading || rating === 0}>
                 {loading ? (
-                  <>
-                    <span className="spinner"></span>
-                    Submitting...
-                  </>
+                  <><span className="spinner"></span>Submitting…</>
                 ) : (
-                  "Submit Feedback"
+                  "Submit Feedback ✨"
                 )}
               </button>
             </form>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </main>
   );

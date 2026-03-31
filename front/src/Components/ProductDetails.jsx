@@ -1,17 +1,52 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import AddToCartButton from "./AddToCartButton";
 import { useCart } from '../contexts/CartContext';
-import { useNavigate } from "react-router-dom"; // ✅ Change this line
 import "./css/ProductDetails.css";
+import axios from "axios";
+
+const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%231a1a2e' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='72'%3E🌿%3C/text%3E%3C/svg%3E`;
+
+const imgSrc = (url) => {
+  if (!url) return PLACEHOLDER;
+  if (url.startsWith('http')) return url;
+  return `${import.meta.env.VITE_API_URL}${url}`;
+};
 
 const ProductDetails = () => {
-  const { state: product } = useLocation();
-  const [quantity, setQuantity] = useState(1);
-  const [mlSize, setMlSize] = useState(3);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const navigate = useNavigate(); // ✅ Add this line (line 8ish)
+  const { state: locationProduct } = useLocation();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
+  const [product, setProduct]               = useState(locationProduct || null);
+  const [fetchLoading, setFetchLoading]     = useState(!locationProduct);
+  const [quantity, setQuantity]             = useState(1);
+  const [mlSize, setMlSize]                 = useState(3);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const { addToCart } = useCart();
+
+  // FIX: If product not in state (direct URL access), fetch it from API
+  useEffect(() => {
+    if (!locationProduct && id) {
+      setFetchLoading(true);
+      axios.get(`${import.meta.env.VITE_API_URL}/api/products/${id}`)
+        .then(res => setProduct(res.data))
+        .catch(() => setProduct(null))
+        .finally(() => setFetchLoading(false));
+    }
+  }, [id, locationProduct]);
+
+  if (fetchLoading) {
+    return (
+      <div className="product-details-page">
+        <div className="empty-state">
+          <div className="empty-icon">⏳</div>
+          <h2>Loading product…</h2>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -20,33 +55,29 @@ const ProductDetails = () => {
           <div className="empty-icon">🎁</div>
           <h2>Product not found</h2>
           <p>Please go back to the catalog to explore our collection.</p>
+          <button className="back-btn" onClick={() => navigate('/category')}>← Back to Catalog</button>
         </div>
       </div>
     );
   }
 
-  const handleQuantityChange = (change) => {
-    setQuantity((prev) => Math.max(1, prev + change));
-  };
+  const handleQuantityChange = (change) =>
+    setQuantity(prev => Math.max(1, prev + change));
 
-  const handleMlChange = (size) => {
-    setMlSize(size);
-  };
+  const handleMlChange = (size) => setMlSize(size);
 
   const adjustedPrice = (product.price * quantity * mlSize) / 3;
 
-  const { addToCart } = useCart();
+  const handleBuyNow = async () => {
+    try {
+      await addToCart(product._id, quantity, mlSize);
+      navigate('/checkout');
+    } catch (error) {
+      console.error('Error with Buy Now:', error);
+    }
+  };
 
-const handleBuyNow = async () => {
-  try {
-    // Add current product to cart with selected quantity/mlSize
-    await addToCart(product._id, quantity, mlSize);
-    // Go directly to checkout
-    navigate('/checkout');
-  } catch (error) {
-    console.error('Error with Buy Now:', error);
-  }
-};
+  const galleryImages = [product.imageUrl, ...(product.additionalImages || [])];
 
   const renderNotes = (noteType, label) => (
     <div className="note-group" key={noteType}>
@@ -59,10 +90,10 @@ const handleBuyNow = async () => {
           <div className="note-item" key={index}>
             <div className="note-image-wrapper">
               <img
-                src={`${import.meta.env.VITE_API_URL}${note.imageUrl}`}
+                src={imgSrc(note.imageUrl)}
                 alt={note.name}
                 className="note-image"
-                onError={(e) => (e.target.style.display = "none")}
+                onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
               />
             </div>
             <p className="note-name">{note.name}</p>
@@ -72,104 +103,88 @@ const handleBuyNow = async () => {
     </div>
   );
 
-  const getGalleryImages = () => {
-    const images = [product.imageUrl];
-    if (product.additionalImages) {
-      images.push(...product.additionalImages);
-    }
-    return images;
-  };
-
-  const galleryImages = getGalleryImages();
-
   return (
     <div className="product-details-page">
       <div className="product-breadcrumb">
-        <a href="/catalog">Catalog</a> / <span>{product.name}</span>
+        <button onClick={() => navigate('/category')} className="breadcrumb-link">Catalog</button>
+        {' / '}
+        <span>{product.name}</span>
       </div>
-      
+
       <div className="product-main-container">
+        {/* Gallery */}
         <div className="product-gallery">
           <div className="main-image-container">
             <img
-              src={`${import.meta.env.VITE_API_URL}${galleryImages[currentImageIndex]}`}
+              src={imgSrc(galleryImages[currentImageIndex])}
               alt={product.name}
               className="main-product-image"
+              onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
             />
-            <div className="image-nav">
-              <button 
-                className="nav-btn prev" 
-                onClick={() => setCurrentImageIndex((prev) => 
-                  prev === 0 ? galleryImages.length - 1 : prev - 1
-                )}
-              >
-                ‹
-              </button>
-              <button 
-                className="nav-btn next" 
-                onClick={() => setCurrentImageIndex((prev) => 
-                  prev === galleryImages.length - 1 ? 0 : prev + 1
-                )}
-              >
-                ›
-              </button>
-            </div>
+            {galleryImages.length > 1 && (
+              <div className="image-nav">
+                <button className="nav-btn prev" onClick={() =>
+                  setCurrentImageIndex(prev => prev === 0 ? galleryImages.length - 1 : prev - 1)
+                }>‹</button>
+                <button className="nav-btn next" onClick={() =>
+                  setCurrentImageIndex(prev => prev === galleryImages.length - 1 ? 0 : prev + 1)
+                }>›</button>
+              </div>
+            )}
           </div>
-          
           {galleryImages.length > 1 && (
             <div className="thumbnail-gallery">
-              {galleryImages.map((img, index) => (
-                <div
-                  key={index}
-                  className={`thumbnail ${currentImageIndex === index ? 'active' : ''}`}
-                  onClick={() => setCurrentImageIndex(index)}
-                >
-                  <img
-                    src={`${import.meta.env.VITE_API_URL}${img}`}
-                    alt={`${product.name} ${index + 1}`}
-                  />
-                </div>
+              {galleryImages.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={imgSrc(img)}
+                  alt={`View ${idx + 1}`}
+                  className={`thumbnail ${idx === currentImageIndex ? 'active' : ''}`}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
+                />
               ))}
             </div>
           )}
         </div>
 
-        <div className="product-info">
-          <div className="product-header">
-            <h1 className="product-title">{product.name}</h1>
-            <div className="rating">
-              <span className="stars">★★★★★</span>
-              <span className="reviews">(128 reviews)</span>
-            </div>
+        {/* Product Info */}
+        <div className="product-info-section">
+          <h1 className="product-title">{product.name}</h1>
+
+          <div className="product-rating">
+            {'★★★★★'.split('').map((s, i) => (
+              <span key={i} className="star filled">{s}</span>
+            ))}
+            <span className="review-count">(128 reviews)</span>
           </div>
 
-          <div className="product-badge">Inspired by Premium Designers</div>
+          {Array.isArray(product.category) && product.category.length > 0 && (
+            <div className="product-tags">
+              {product.category.map((cat, i) => (
+                <span key={i} className="product-tag">
+                  {cat === 'Premium' ? 'Inspired by Premium Designers' : cat}
+                </span>
+              ))}
+            </div>
+          )}
 
-          <p className="product-description">
-            {product.description || 
-              "A rich blend of oriental and western notes crafted for long-lasting elegance. Experience luxury in every spray."
-            }
-          </p>
+          <p className="product-description">{product.description}</p>
 
           <div className="price-section">
-            <div className="current-price">
-              ₹{adjustedPrice.toFixed(2)}
-              <span className="price-per-ml">
-                (₹{(adjustedPrice / mlSize).toFixed(2)}/ml)
-              </span>
-            </div>
-            <div className="original-price">
-              MRP: ₹{(product.price * quantity * 3).toFixed(2)}
-              <span className="savings">
-                Save {(adjustedPrice / (product.price * quantity * 3) * 100).toFixed(0)}%
-              </span>
+            <span className="current-price">₹{adjustedPrice.toFixed(2)}</span>
+            <span className="price-per-ml">(₹{(product.price / 3).toFixed(2)}/ml)</span>
+            <div className="price-meta">
+              <span className="original-price">MRP: ₹{(product.price * quantity * mlSize).toFixed(0)}</span>
+              <span className="discount-badge">Save 33%</span>
             </div>
           </div>
 
-          <div className="size-selector">
-            <label className="selector-label">Size</label>
+          {/* Size Selector */}
+          <div className="size-section">
+            <h3 className="section-label">SIZE</h3>
             <div className="size-buttons">
-              {[3, 6, 12].map((size) => (
+              {[3, 6, 12].map(size => (
                 <button
                   key={size}
                   className={`size-btn ${mlSize === size ? 'active' : ''}`}
@@ -181,82 +196,35 @@ const handleBuyNow = async () => {
             </div>
           </div>
 
-          <div className="quantity-selector">
-            <label className="selector-label">Quantity</label>
+          {/* Quantity */}
+          <div className="quantity-section">
+            <h3 className="section-label">QUANTITY</h3>
             <div className="quantity-controls">
-              <button 
-                className="qty-btn" 
-                onClick={() => handleQuantityChange(-1)}
-                disabled={quantity === 1}
-              >
-                -
-              </button>
-              <span className="qty-display">{quantity}</span>
-              <button 
-                className="qty-btn" 
-                onClick={() => handleQuantityChange(1)}
-              >
-                +
-              </button>
+              <button className="qty-btn" onClick={() => handleQuantityChange(-1)}>-</button>
+              <span className="qty-value">{quantity}</span>
+              <button className="qty-btn" onClick={() => handleQuantityChange(1)}>+</button>
             </div>
           </div>
 
+          {/* Action Buttons */}
           <div className="action-buttons">
-           <button 
-                type="button"
-                className="buy-now-btn"
-                onClick={handleBuyNow}  // ✅ Add this
-              >
-  <span>Buy Now</span>
-  <span className="price-tag">₹{adjustedPrice.toFixed(2)}</span>
-</button>
-
-            <AddToCartButton 
-  product={product} 
-  size="large" 
-  quantity={quantity}      
-  mlSize={mlSize}          
-/>
-          </div>
-
-          <div className="product-features">
-            <div className="feature">
-              <div className="feature-icon">🚚</div>
-              <span>Free Shipping over ₹999</span>
-            </div>
-            <div className="feature">
-              <div className="feature-icon">🛡️</div>
-              <span>7 Day Return</span>
-            </div>
-            <div className="feature">
-              <div className="feature-icon">⭐</div>
-              <span>100% Authentic</span>
-            </div>
+            <AddToCartButton product={product} quantity={quantity} mlSize={mlSize} />
+            <button className="buy-now-btn" onClick={handleBuyNow}>Buy Now</button>
           </div>
         </div>
       </div>
 
-      <div className="perfume-pyramid">
-        <div className="pyramid-header">
-          <h2>Perfume Pyramid</h2>
-          <p>Discover the layered fragrance journey</p>
-        </div>
-        <div className="pyramid-container">
-          <div className="pyramid-visual">
-            <div className="pyramid-shape">
-              <div className="pyramid-tier top-tier">
-                {renderNotes("top", "Top Notes")}
-              </div>
-              <div className="pyramid-tier middle-tier">
-                {renderNotes("middle", "Middle (Heart) Notes")}
-              </div>
-              <div className="pyramid-tier base-tier">
-                {renderNotes("base", "Base Notes")}
-              </div>
-            </div>
+      {/* Notes Section */}
+      {product.notes && (
+        <div className="notes-section">
+          <h2 className="notes-title">Fragrance Notes</h2>
+          <div className="notes-grid">
+            {renderNotes('top', 'Top Notes')}
+            {renderNotes('middle', 'Heart Notes')}
+            {renderNotes('base', 'Base Notes')}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

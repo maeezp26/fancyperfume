@@ -4,12 +4,13 @@ import './OrdersAdmin.css';
 
 export default function OrdersAdmin() {
   const { user } = useAuth();
-  const [orders, setOrders]           = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const [orders, setOrders]             = useState([]);
+  const [loading, setLoading]           = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter]   = useState('30d');
+  const [dateFilter, setDateFilter]     = useState('30d');
+  const [deletingId, setDeletingId]     = useState(null);
 
-  // FIX: Admin guard FIRST — before any data fetch
+  // Admin guard first
   if (!user || user.role !== 'admin') {
     return (
       <main className="orders-admin-page">
@@ -21,10 +22,8 @@ export default function OrdersAdmin() {
     );
   }
 
-  // FIX: complete dateFilter logic — old code only handled '30d', rest showed ALL orders
   const filteredOrders = orders.filter(order => {
     if (statusFilter !== 'all' && order.status !== statusFilter) return false;
-
     const daysMap = { '7d': 7, '30d': 30, '90d': 90, '365d': 365 };
     const days = daysMap[dateFilter];
     if (days) {
@@ -32,22 +31,51 @@ export default function OrdersAdmin() {
       cutoff.setDate(cutoff.getDate() - days);
       if (new Date(order.createdAt) < cutoff) return false;
     }
-    // 'all' → no date filter
     return true;
   });
 
+  // FIX: Clear All — check response.ok before updating UI
   const handleClearOrders = async () => {
-    if (!window.confirm('Delete ALL orders permanently? This cannot be undone.')) return;
+    if (!window.confirm('⚠️ Delete ALL orders permanently? This cannot be undone.')) return;
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/clear`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) setOrders([]);
-      else console.error('Failed to clear orders');
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setOrders([]);
+      } else {
+        alert('Failed to clear orders: ' + (data.message || 'Unknown error'));
+      }
     } catch (err) {
       console.error('Clear orders error:', err);
+      alert('Network error while clearing orders.');
+    }
+  };
+
+  // NEW: Delete single order
+  const handleDeleteOrder = async (orderId) => {
+    if (!window.confirm('Delete this order permanently?')) return;
+    setDeletingId(orderId);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setOrders(prev => prev.filter(o => o._id !== orderId));
+      } else {
+        alert('Failed to delete order: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Delete order error:', err);
+      alert('Network error while deleting order.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -87,10 +115,10 @@ export default function OrdersAdmin() {
     <main className="orders-admin-page">
       <div className="admin-container">
         <div className="admin-header">
-          <h1 className="orders-title">Recent Orders ({filteredOrders.length})</h1>
+          <h1 className="orders-title">Orders ({filteredOrders.length})</h1>
           <div className="admin-actions">
             <button className="admin-btn admin-btn-danger" onClick={handleClearOrders}>
-              🗑 Clear All Orders
+              🗑 Clear All
             </button>
             <div className="dropdown-pill">
               <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
@@ -133,6 +161,7 @@ export default function OrdersAdmin() {
                   <th>Total</th>
                   <th>Date</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,13 +169,13 @@ export default function OrdersAdmin() {
                   <tr key={order._id}>
                     <td className="order-id">{order._id.slice(-8)}</td>
                     <td>
-                      <div>{order.shippingInfo?.firstName} {order.shippingInfo?.lastName}</div>
+                      <div className="customer-name">{order.shippingInfo?.firstName} {order.shippingInfo?.lastName}</div>
                       <div className="orders-email">{order.shippingInfo?.email}</div>
                     </td>
                     <td className="address-cell">
                       <div>{order.shippingInfo?.address}</div>
                       <div>{order.shippingInfo?.city}, {order.shippingInfo?.state}</div>
-                      <div>Pin: {order.shippingInfo?.zipCode}</div>
+                      <div className="pin-code">PIN: {order.shippingInfo?.zipCode}</div>
                     </td>
                     <td>{order.shippingInfo?.phone}</td>
                     <td>
@@ -159,12 +188,22 @@ export default function OrdersAdmin() {
                         ))}
                       </ul>
                     </td>
-                    <td>₹{order.subtotal?.toLocaleString()}</td>
+                    <td>₹{order.subtotal?.toLocaleString('en-IN')}</td>
                     <td>₹{order.shippingAmount || 60}</td>
-                    <td className="total-col"><strong>₹{order.totalAmount?.toLocaleString()}</strong></td>
-                    <td>{new Date(order.createdAt).toLocaleDateString('en-IN')}</td>
+                    <td className="total-col"><strong>₹{order.totalAmount?.toLocaleString('en-IN')}</strong></td>
+                    <td className="date-col">{new Date(order.createdAt).toLocaleDateString('en-IN')}</td>
                     <td>
                       <span className={`status-badge status-${order.status}`}>{order.status}</span>
+                    </td>
+                    <td>
+                      <button
+                        className={`order-delete-btn ${deletingId === order._id ? 'deleting' : ''}`}
+                        onClick={() => handleDeleteOrder(order._id)}
+                        disabled={deletingId === order._id}
+                        title="Delete this order"
+                      >
+                        {deletingId === order._id ? '⏳' : '🗑'}
+                      </button>
                     </td>
                   </tr>
                 ))}

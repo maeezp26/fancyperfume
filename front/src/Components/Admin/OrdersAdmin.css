@@ -313,3 +313,54 @@
   gap: 0.75rem;
   align-items: center;
 }
+/* ── Per-Order Delete Button ───────────────────────────────────────────────── */
+.order-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(220, 53, 69, 0.15);
+  color: #dc3545;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.order-delete-btn:hover:not(:disabled) {
+  background: rgba(220, 53, 69, 0.85);
+  color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+  border-color: #dc3545;
+}
+
+.order-delete-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.order-delete-btn.deleting,
+.order-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #e8e8e8;
+}
+
+.pin-code {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.date-col {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
