@@ -71,7 +71,7 @@ export default function Footer() {
               <a href="https://wa.me/917600935055" target="_blank" rel="noopener noreferrer" className="social-icon whatsapp" aria-label="WhatsApp">
                 <WaIcon />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-icon instagram" aria-label="Instagram">
+              <a href="https://instagram.com/fancy_perfume.vld" target="_blank" rel="noopener noreferrer" className="social-icon instagram" aria-label="Instagram">
                 <InstaIcon />
               </a>
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-icon facebook" aria-label="Facebook">
