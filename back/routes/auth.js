@@ -1,3 +1,4 @@
+// back/routes/auth.js
 const express = require('express');
 const jwt     = require('jsonwebtoken');
 const User    = require('../models/User');
@@ -6,55 +7,128 @@ const { authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+// ── Register ──────────────────────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   try {
     const { name, contact, city, password } = req.body;
     if (!name || !contact || !city || !password)
       return res.status(400).json({ message: 'All fields are required' });
 
-    const existingUser = await User.findOne({ $or: [{ email: contact }, { phone: contact }] });
+    const existingUser = await User.findOne({
+      $or: [{ email: contact }, { phone: contact }],
+    });
     if (existingUser)
       return res.status(400).json({ message: 'User already exists with this email or phone' });
 
     const user = new User({
       name,
-      email: contact.includes('@') ? contact : '',
-      phone: !contact.includes('@') ? contact : '',
+      email: contact.includes('@') ? contact.toLowerCase().trim() : '',
+      phone: !contact.includes('@') ? contact.trim() : '',
       city,
       password,
     });
     await user.save();
 
     const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.status(201).json({ message: 'User registered successfully', token,
-      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, city: user.city, role: user.role } });
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, city: user.city, role: user.role },
+    });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
+// ── Login ─────────────────────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
     const { usernameOrPhone, password } = req.body;
     if (!usernameOrPhone || !password)
       return res.status(400).json({ message: 'Credentials required' });
 
-    const user = await User.findOne({ $or: [{ email: usernameOrPhone }, { phone: usernameOrPhone }] });
+    // FIX: search by email OR phone — previously this worked fine on backend,
+    // but the frontend was blocking email input with a special-character check.
+    // Now the backend also normalises email to lowercase for safe comparison.
+    const lookup = String(usernameOrPhone).trim().toLowerCase();
+    const user = await User.findOne({
+      $or: [
+        { email: lookup },
+        { phone: usernameOrPhone.trim() },
+      ],
+    });
+
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const isValid = await user.comparePassword(password);
     if (!isValid) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ message: 'Login successful', token,
-      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, city: user.city, role: user.role } });
+    res.json({
+      message: 'Login successful',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, city: user.city, role: user.role },
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
 });
 
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+// Verifies Google ID token, creates or finds user, returns JWT
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ message: 'Google credential required' });
+
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(501).json({ message: 'Google OAuth not configured on server' });
+    }
+
+    // Verify Google ID token
+    const { OAuth2Client } = require('google-auth-library');
+    const client  = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket  = await client.verifyIdToken({
+      idToken:  credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    const { email, name, sub: googleId } = payload;
+    if (!email) return res.status(400).json({ message: 'No email in Google account' });
+
+    // Find existing user by email, or create a new one
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      // New Google user — create without password (they sign in via Google only)
+      user = new User({
+        name:        name || email.split('@')[0],
+        email:       email.toLowerCase(),
+        phone:       '',
+        city:        'Not specified',  // can update in Profile
+        // Random password that can never be guessed (Google users don't use password login)
+        password:    require('crypto').randomBytes(32).toString('hex'),
+        googleId,
+      });
+      await user.save();
+    }
+
+    const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      message: 'Google login successful',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, phone: user.phone, city: user.city, role: user.role },
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(401).json({ message: 'Google authentication failed' });
+  }
+});
+
+// ── Get Profile ───────────────────────────────────────────────────────────────
 router.get('/profile', authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
@@ -66,10 +140,9 @@ router.put('/profile', authMiddleware, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    if (name)  user.name = name.trim();
-    if (city)  user.city = city.trim();
+    if (name) user.name = name.trim();
+    if (city) user.city = city.trim();
 
-    // Password change — requires current password
     if (newPassword) {
       if (!currentPassword)
         return res.status(400).json({ message: 'Current password required to set new password' });
@@ -81,9 +154,7 @@ router.put('/profile', authMiddleware, async (req, res) => {
     }
 
     await user.save();
-
     const updatedUser = { id: user._id, name: user.name, email: user.email, phone: user.phone, city: user.city, role: user.role };
-    // Issue new token so updated name is reflected immediately
     const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ message: 'Profile updated successfully', user: updatedUser, token });
   } catch (err) {

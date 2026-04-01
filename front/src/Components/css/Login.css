@@ -1,146 +1,311 @@
-/* Full-page background */
-.login-page {
+/* Login.css — shared by Login.jsx and Register.jsx */
+
+/* ── Page ───────────────────────────────────────────────────────────────── */
+.auth-page {
   min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  background: radial-gradient(circle at top, #1b2138 0, #050509 55%, #000 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 5rem 1rem 3rem;
+  background: radial-gradient(circle at 30% 20%, #1b1040 0%, #0d0820 40%, #050509 100%);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
-/* Card */
-.login-card {
+/* ── Card ───────────────────────────────────────────────────────────────── */
+.auth-card {
   width: 100%;
   max-width: 420px;
-  padding: 32px 30px 34px;
+  padding: 2.5rem 2rem;
   border-radius: 24px;
-  background: rgba(10, 10, 18, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
+  background: rgba(10, 8, 22, 0.88);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255,255,255,0.04);
   color: #f7f7f7;
   text-align: center;
+  animation: fadeUp 0.35s ease;
 }
 
-/* Logo circle */
-.login-logo {
-  width: 64px;
-  height: 64px;
+.auth-card-wide { max-width: 460px; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Logo ───────────────────────────────────────────────────────────────── */
+.auth-logo {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1rem;
   border-radius: 50%;
-  margin: 0 auto 14px;
-  background: radial-gradient(circle at 30% 20%, #ffd56b, #c58a2a 60%, #4b2104);
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.3);
+  background: rgba(212,175,55,0.06);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 1.4rem;
-  color: #1a1307;
-  box-shadow: 0 0 26px rgba(255, 213, 107, 0.7);
+}
+.auth-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-/* Titles */
-.login-title {
-  margin: 4px 0 4px;
+/* ── Headings ───────────────────────────────────────────────────────────── */
+.auth-title {
   font-size: 1.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #f8dba0;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f5d060, #d4af37, #a07d1c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.3rem;
+  letter-spacing: 0.04em;
 }
 
-.login-subtitle {
-  margin-bottom: 20px;
-  font-size: 0.95rem;
-  color: #c0c4d6;
+.auth-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 1.5rem;
 }
 
-/* Form */
-.login-form {
+/* ── Google button wrapper ──────────────────────────────────────────────── */
+.google-btn-wrap {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Override Google button to fit our design */
+.google-btn-wrap > div > div {
+  border-radius: 50px !important;
+}
+
+.google-loading {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.45);
+  margin: 0;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── Divider ────────────────────────────────────────────────────────────── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0.5rem 0 1rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.auth-divider span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+/* ── Form ───────────────────────────────────────────────────────────────── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   text-align: left;
 }
 
-.login-form label {
-  color: #f6d08a;
-  margin-bottom: 6px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.field-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
 }
 
-.login-form input {
-  padding: 11px 12px;
-  margin-bottom: 18px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.08);
+.field-group label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(212, 175, 55, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.4rem;
+}
+
+.pw-hint {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.3);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Input wrapper ──────────────────────────────────────────────────────── */
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-wrap input {
+  width: 100%;
+  padding: 11px 42px 11px 40px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
   color: #f7f7f7;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-family: inherit;
 }
 
-.login-form input::placeholder {
-  color: #c7cfde;
-  font-size: 0.95rem;
+/* City select inherits from SearchableSelect but needs icon padding */
+.city-wrap .searchable-select-wrapper {
+  padding-left: 38px;
+  width: 100%;
 }
 
-.login-form input:focus {
-  border-color: #f0b04a;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 3px rgba(240, 176, 74, 0.35);
+.input-wrap input::placeholder { color: rgba(255,255,255,0.22); }
+
+.input-wrap input:focus {
+  border-color: rgba(212, 175, 55, 0.55);
+  background: rgba(255, 255, 255, 0.09);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.12);
 }
 
-/* Button */
-.login-form button {
-  margin-top: 6px;
-  background: linear-gradient(135deg, #f0b04a, #9e591c);
-  color: #120b05;
-  padding: 12px;
+/* ── Show/hide password toggle ──────────────────────────────────────────── */
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
   border: none;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.35);
   cursor: pointer;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.7);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  z-index: 1;
+}
+.pw-toggle:hover { color: rgba(212, 175, 55, 0.8); }
+
+/* ── Password strength ──────────────────────────────────────────────────── */
+.pw-strength-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 6px;
+}
+.pw-strength-bar {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.pw-strength-seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  transition: background 0.3s ease;
+}
+.pw-strength-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ── Field error ────────────────────────────────────────────────────────── */
+.field-error {
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  margin: 4px 0 0;
+}
+
+/* ── Submit button ──────────────────────────────────────────────────────── */
+.auth-submit-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 13px;
+  border: none;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #f0b04a, #c8790f);
+  color: #140b03;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(200, 120, 0, 0.4);
   transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.login-form button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.8);
-  filter: brightness(1.05);
+.auth-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(200, 120, 0, 0.55);
+  filter: brightness(1.06);
 }
 
-.login-form button:disabled {
-  opacity: 0.7;
+.auth-submit-btn:active:not(:disabled) { transform: translateY(0); }
+
+.auth-submit-btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* Error */
-.error-message {
-  background-color: #ff4444;
-  color: white;
-  padding: 10px 12px;
-  border-radius: 10px;
-  margin-bottom: 16px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 0.9rem;
+/* ── Button spinner ─────────────────────────────────────────────────────── */
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(20, 11, 3, 0.3);
+  border-top-color: #140b03;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* Small screens */
+/* ── Switch link ────────────────────────────────────────────────────────── */
+.auth-switch {
+  margin-top: 1.2rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+.auth-link {
+  color: #d4af37;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.auth-link:hover { color: #f5d060; text-decoration: underline; }
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .login-card {
-    margin: 0 14px;
-    padding: 26px 22px 28px;
-    border-radius: 20px;
+  .auth-card {
+    padding: 2rem 1.25rem;
+    border-radius: 18px;
   }
+  .auth-title { font-size: 1.4rem; }
 }
