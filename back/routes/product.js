@@ -1,44 +1,39 @@
-// routes/product.js
+// back/routes/product.js
+// Images now stored on Cloudinary — never disappear on Render redeploy
 const express = require('express');
-const multer  = require('multer');
 const path    = require('path');
 const Product = require('../models/Product');
+const { createUploader, deleteImage } = require('../utils/cloudinary');
 
 const router = express.Router();
 
-// ── Multer Storage ────────────────────────────────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads'),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-    const sanitized    = file.originalname.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
-    cb(null, `${file.fieldname}-${uniqueSuffix}-${sanitized}`);
-  },
-});
+// One uploader per folder bucket
+const productUploader = createUploader('products');
+const notesUploader   = createUploader('notes');
 
-// FIX: Add file size limit (5MB) and type filter — prevents large/malicious uploads
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|webp/;
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.test(ext)) return cb(null, true);
-    cb(new Error('Only image files are allowed'));
-  },
-});
-
-const uploadFields = upload.fields([
+const uploadFields = productUploader.fields([
   { name: 'imageUrl',          maxCount: 1  },
-  { name: 'topNotesImages',    maxCount: 10 },
-  { name: 'middleNotesImages', maxCount: 10 },
-  { name: 'baseNotesImages',   maxCount: 10 },
 ]);
+
+// Notes images handled by a separate uploader instance
+const uploadAllFields = multerCombined();
+
+function multerCombined() {
+  // We can't mix two CloudinaryStorage instances in one .fields() call,
+  // so we define all fields under one uploader pointing to a shared folder.
+  const { createUploader: cu } = require('../utils/cloudinary');
+  const uploader = cu('products');
+  return uploader.fields([
+    { name: 'imageUrl',          maxCount: 1  },
+    { name: 'topNotesImages',    maxCount: 10 },
+    { name: 'middleNotesImages', maxCount: 10 },
+    { name: 'baseNotesImages',   maxCount: 10 },
+  ]);
+}
 
 // ── GET All Products ──────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    // PERFORMANCE: .lean() returns plain JS objects — 2-3x faster than Mongoose documents
     const products = await Product.find().lean();
     res.json(products);
   } catch (err) {
@@ -58,17 +53,18 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST Add New Product ──────────────────────────────────────────────────────
-router.post('/', uploadFields, async (req, res) => {
+router.post('/', uploadAllFields, async (req, res) => {
   try {
     const { name, category, price, description, notes } = req.body;
 
     const parsedNotes    = JSON.parse(notes);
     const parsedCategory = JSON.parse(category);
 
+    // Cloudinary returns file.path as the full HTTPS URL
     const mapNotes = (arr, files = []) =>
       arr.map((note, i) => ({
         name:     note.name,
-        imageUrl: files[i] ? `/uploads/${files[i].filename}` : '',
+        imageUrl: files[i] ? files[i].path : '',
       }));
 
     const newProduct = new Product({
@@ -76,7 +72,8 @@ router.post('/', uploadFields, async (req, res) => {
       category: parsedCategory,
       price,
       description,
-      imageUrl: req.files?.imageUrl?.[0] ? `/uploads/${req.files.imageUrl[0].filename}` : '',
+      // Cloudinary: file.path is the full CDN URL
+      imageUrl: req.files?.imageUrl?.[0]?.path || '',
       notes: {
         top:    mapNotes(parsedNotes.top,    req.files?.topNotesImages),
         middle: mapNotes(parsedNotes.middle, req.files?.middleNotesImages),
@@ -93,7 +90,7 @@ router.post('/', uploadFields, async (req, res) => {
 });
 
 // ── PUT Edit Product ──────────────────────────────────────────────────────────
-router.put('/:id', uploadFields, async (req, res) => {
+router.put('/:id', uploadAllFields, async (req, res) => {
   try {
     const { name, category, price, description, notes } = req.body;
 
@@ -103,7 +100,7 @@ router.put('/:id', uploadFields, async (req, res) => {
     const mapNotes = (arr, files = []) =>
       arr.map((note, i) => ({
         name:     note.name,
-        imageUrl: files[i] ? `/uploads/${files[i].filename}` : (note.imageUrl || ''),
+        imageUrl: files[i] ? files[i].path : (note.imageUrl || ''),
       }));
 
     const updated = {
@@ -118,8 +115,9 @@ router.put('/:id', uploadFields, async (req, res) => {
       },
     };
 
+    // Only update main image if a new one was uploaded
     if (req.files?.imageUrl?.[0]) {
-      updated.imageUrl = `/uploads/${req.files.imageUrl[0].filename}`;
+      updated.imageUrl = req.files.imageUrl[0].path;
     }
 
     const product = await Product.findByIdAndUpdate(req.params.id, updated, { new: true });
