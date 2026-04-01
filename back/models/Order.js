@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
   product:  { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-  // FIX: add name field so admin panel can display product name without extra populate
   name:     { type: String, default: '' },
   mlSize:   { type: Number, required: true },
   quantity: { type: Number, required: true, min: 1 },
@@ -22,21 +21,23 @@ const shippingSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
-    user:     { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    items:    { type: [orderItemSchema], required: true },
-    shippingInfo: { type: shippingSchema, required: true },
-    subtotal:     { type: Number, required: true, min: 0 },
+    user:           { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    items:          { type: [orderItemSchema], required: true },
+    shippingInfo:   { type: shippingSchema, required: true },
+    subtotal:       { type: Number, required: true, min: 0 },
     shippingAmount: { type: Number, required: true, enum: [50, 80] },
-    totalAmount:  { type: Number, required: true, min: 0 },
+    totalAmount:    { type: Number, required: true, min: 0 },
     razorpayOrderId:   String,
     razorpayPaymentId: String,
     razorpaySignature: String,
     status: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' },
+    // FIX: soft-delete — admin removing an order hides it from admin view
+    // but does NOT delete from customer's MyOrders history
+    deletedByAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-// DB PERFORMANCE: index for fast user order lookups & admin sort
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 

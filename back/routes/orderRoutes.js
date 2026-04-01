@@ -4,11 +4,11 @@ const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-// ── Customer: Get My Orders (with product details populated) ─────────────────
+// ── Customer: Get My Orders ───────────────────────────────────────────────────
+// Customer always sees their own orders regardless of admin deletions
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      // FIX: populate product name + imageUrl so client can show image
       .populate('items.product', 'name imageUrl')
       .select('-razorpaySignature')
       .sort({ createdAt: -1 })
@@ -20,11 +20,11 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Admin: Get All Orders ─────────────────────────────────────────────────────
+// ── Admin: Get All Orders (only non-deleted) ──────────────────────────────────
 router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 200, 500);
-    const orders = await Order.find()
+    const orders = await Order.find({ deletedByAdmin: { $ne: true } })
       .populate('user', 'name email phone')
       .select('-razorpaySignature')
       .sort({ createdAt: -1 })
@@ -37,25 +37,33 @@ router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-// ── Admin: Clear ALL Orders ───────────────────────────────────────────────────
-// IMPORTANT: Must come BEFORE /:id or 'clear' gets treated as an id
+// ── Admin: Soft-delete ALL Orders from admin view ─────────────────────────────
+// FIX: Does NOT actually delete from DB — customer still sees their orders
+// Must be declared BEFORE /:id
 router.delete('/clear', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const result = await Order.deleteMany({});
-    console.log(`🗑 Cleared ${result.deletedCount} orders`);
-    res.json({ success: true, deleted: result.deletedCount });
+    const result = await Order.updateMany(
+      { deletedByAdmin: { $ne: true } },
+      { $set: { deletedByAdmin: true } }
+    );
+    console.log(`🗑 Admin hid ${result.modifiedCount} orders`);
+    res.json({ success: true, deleted: result.modifiedCount });
   } catch (err) {
     console.error('Clear orders error:', err);
-    res.status(500).json({ success: false, message: 'Failed to delete orders' });
+    res.status(500).json({ success: false, message: 'Failed to clear orders' });
   }
 });
 
-// ── Admin: Delete Single Order ────────────────────────────────────────────────
+// ── Admin: Soft-delete Single Order from admin view ───────────────────────────
 router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const deleted = await Order.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ success: false, message: 'Order not found' });
-    res.json({ success: true, message: 'Order deleted' });
+    const updated = await Order.findByIdAndUpdate(
+      req.params.id,
+      { $set: { deletedByAdmin: true } },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ success: false, message: 'Order not found' });
+    res.json({ success: true, message: 'Order removed from admin view' });
   } catch (err) {
     console.error('Delete order error:', err);
     res.status(500).json({ success: false, message: 'Failed to delete order' });

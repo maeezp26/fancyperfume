@@ -37,7 +37,7 @@ export default function HomeAdmin() {
 const fetchHomeData = async () => {
   try {
     setLoading(true);
-    const response = await axios.get("import.meta.env.VITE_API_URL/api/home");
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/home`);
     const data = response.data || {};
     
     // Fix: Always exactly 5 items with proper numbering
@@ -146,7 +146,7 @@ const handleSave = async () => {
       }
     });
 
-    const response = await axios.post("import.meta.env.VITE_API_URL/api/home", formDataToSend, {
+    const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/home`, formDataToSend, {
       headers: { "Content-Type": "multipart/form-data" }
     });
 
