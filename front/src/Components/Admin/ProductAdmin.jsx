@@ -175,7 +175,7 @@ formData.notes.base.forEach((n) => {
 
 
     if (formData.image) {
-      fd.append("imageUrl", formData.image);
+      fd.append("image", formData.image);
     }
 
     fd.append("name", formData.name.trim());

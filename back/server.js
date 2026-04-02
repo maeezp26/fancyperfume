@@ -24,6 +24,8 @@ const orderRoutes    = require('./routes/orderRoutes');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // ── Security headers ──────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow image serving
