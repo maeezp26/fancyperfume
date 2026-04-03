@@ -1,103 +1,73 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./css/Home.css";
 import "./css/HeaderFooter.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-import home1Fallback from "./img/home1.webp";
-import home2Fallback from "./img/home2.webp";
-import gymFallback    from "./img/travel.jpg";
-import officeFallback from "./img/office.jpg";
-import dateFallback   from "./img/datewear.jpg";
-import partyFallback  from "./img/party.jpg";
-import sportsFallback from "./img/sports.jpg";
-import LP1Fallback    from "./img/sports.jpg";
-import LP2Fallback    from "./img/sports.jpg";
-import LP3Fallback    from "./img/sports.jpg";
-import LP4Fallback    from "./img/sports.jpg";
-import LP5Fallback    from "./img/sports.jpg";
 const API = import.meta.env.VITE_API_URL;
 
-// Smart resolver: Cloudinary https:// used as-is; legacy /uploads/ gets API base prepended
-const resolveImg = (url, fallback) => {
+// ── Inline SVG placeholders (no local image files needed) ──────────────────
+const PLACEHOLDER_HERO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='800' viewBox='0 0 1920 800'%3E%3Crect fill='%230f0f23' width='1920' height='800'/%3E%3Ctext x='50%25' y='48%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='80' font-family='serif' opacity='0.25'%3E%F0%9F%8C%BF%3C/text%3E%3Ctext x='50%25' y='62%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='24' font-family='serif' opacity='0.4' letter-spacing='6'%3EFANCY PERFUME%3C/text%3E%3C/svg%3E";
+const PLACEHOLDER_CARD = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' viewBox='0 0 400 500'%3E%3Crect fill='%231a1a2e' width='400' height='500'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='72' opacity='0.3'%3E%F0%9F%8C%BF%3C/text%3E%3C/svg%3E";
+
+const resolveImg = (url, fallback = PLACEHOLDER_CARD) => {
   if (!url) return fallback;
-  if (url.startsWith('http')) return url;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
   return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-
 const DEFAULT_LATEST = [
-  { name: "Abeer",       image: LP1Fallback },
-  { name: "White Oudh",  image: LP2Fallback },
-  { name: "Shanaya",     image: LP3Fallback },
-  { name: "Shabaya",     image: LP4Fallback },
-  { name: "Purple Oudh", image: LP5Fallback },
+  { name: "Abeer" }, { name: "White Oudh" }, { name: "Shanaya" },
+  { name: "Shabaya" }, { name: "Purple Oudh" },
 ];
 
 const DEFAULT_OCCASIONS = [
-  { name: "Office Wear",        image: officeFallback },
-  { name: "Date Wear",          image: dateFallback   },
-  { name: "Party & Night Wear", image: partyFallback  },
-  { name: "Gym Wear",           image: gymFallback    },
-  { name: "Sports Wear",        image: sportsFallback },
+  { name: "Office Wear" }, { name: "Date Wear" }, { name: "Party & Night Wear" },
+  { name: "Gym Wear" }, { name: "Sports Wear" },
 ];
 
 export default function Home() {
   const [homeData, setHomeData] = useState({
-    bannerHeading:    "Welcome to",
+    bannerHeading: "Welcome to",
     bannerSubHeading: "Fancy Perfume",
-    tagline:          "The Royalty of fragrance",
-    latestProducts:   DEFAULT_LATEST,
-    occasions:        DEFAULT_OCCASIONS,
-    bottomDescription:
-      "Welcome to our exclusive collection of luxurious perfumes, where every scent tells a story. Explore a range of fragrances crafted to inspire, enchant, and captivate.",
+    tagline: "The Royalty of fragrance",
+    latestProducts: DEFAULT_LATEST,
+    occasions: DEFAULT_OCCASIONS,
+    bottomDescription: "Welcome to our exclusive collection of luxurious perfumes, where every scent tells a story. Explore a range of fragrances crafted to inspire, enchant, and captivate.",
   });
-  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    const fetchHomeData = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/home`);
-        if (cancelled) return;
-        const data = response.data;
-        if (!data) return;
-
-        setHomeData(prev => ({
-          bannerHeading:    data.bannerHeading    || prev.bannerHeading,
-          bannerSubHeading: data.bannerSubHeading || prev.bannerSubHeading,
-          tagline:          data.tagline          || prev.tagline,
-          latestProducts: Array.isArray(data.latestProducts) && data.latestProducts.length
-            ? data.latestProducts.map((p, idx) => ({
-                name:  p.name  || prev.latestProducts[idx]?.name  || `Product ${idx + 1}`,
-                image: resolveImg(p.image, prev.latestProducts[idx]?.image || LP1Fallback),
-              }))
-            : prev.latestProducts,
-          occasions: Array.isArray(data.occasions) && data.occasions.length
-            ? data.occasions.map((o, idx) => ({
-                name:  o.name  || prev.occasions[idx]?.name  || `Occasion ${idx + 1}`,
-                image: resolveImg(o.image, prev.occasions[idx]?.image || officeFallback),
-              }))
-            : prev.occasions,
-          bottomDescription: data.bottomDescription || prev.bottomDescription,
-        }));
-      } catch {
-        // silently fall back to defaults (already set)
-      } finally {
-        if (!cancelled) setDataLoaded(true);
-      }
-    };
-    fetchHomeData();
+    axios.get(`${API}/api/home`).then(res => {
+      if (cancelled || !res.data) return;
+      const data = res.data;
+      setHomeData(prev => ({
+        bannerHeading:    data.bannerHeading    || prev.bannerHeading,
+        bannerSubHeading: data.bannerSubHeading || prev.bannerSubHeading,
+        tagline:          data.tagline          || prev.tagline,
+        latestProducts: Array.isArray(data.latestProducts) && data.latestProducts.length
+          ? data.latestProducts.map((p, idx) => ({
+              name:  p.name  || prev.latestProducts[idx]?.name  || `Product ${idx + 1}`,
+              image: resolveImg(p.image),
+            }))
+          : prev.latestProducts,
+        occasions: Array.isArray(data.occasions) && data.occasions.length
+          ? data.occasions.map((o, idx) => ({
+              name:  o.name  || prev.occasions[idx]?.name  || `Occasion ${idx + 1}`,
+              image: resolveImg(o.image),
+            }))
+          : prev.occasions,
+        bottomDescription: data.bottomDescription || prev.bottomDescription,
+      }));
+    }).catch(() => {}).finally(() => { if (!cancelled) {} });
     return () => { cancelled = true; };
   }, []);
 
   return (
     <main className="luxury-home">
-      {/* Hero Banner */}
       <section className="hero-banner">
         <div className="hero-bg">
-          {/* PERFORMANCE: eager load hero image (above fold) */}
-          <img src={home1Fallback} alt="Luxury Fragrances" className="hero-image" fetchpriority="high" />
+          <img src={PLACEHOLDER_HERO} alt="Luxury Fragrances" className="hero-image" />
           <div className="hero-overlay"></div>
         </div>
         <div className="hero-content">
@@ -109,7 +79,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="stats-section">
         <div className="stats-container">
           {[["10K+","Happy Customers"],["500+","Premium Scents"],["99%","Authenticity"],["24/7","Support"]].map(([num,label]) => (
@@ -121,7 +90,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Latest Products */}
       <section className="products-section">
         <div className="section-header">
           <h2 className="section-title">Latest Products</h2>
@@ -131,8 +99,12 @@ export default function Home() {
           {homeData.latestProducts.map((product, index) => (
             <Link to="/category" className="product-card luxury-card" key={index}>
               <div className="card-media">
-                {/* PERFORMANCE: lazy load below-fold images */}
-                <img src={product.image || LP1Fallback} alt={product.name} loading="lazy" />
+                <img
+                  src={product.image || PLACEHOLDER_CARD}
+                  alt={product.name}
+                  loading="lazy"
+                  onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_CARD; }}
+                />
                 <div className="card-overlay"><span className="card-badge">New</span></div>
               </div>
               <div className="card-content">
@@ -144,7 +116,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Shop by Occasion */}
       <section className="occasions-section">
         <div className="section-header">
           <h2 className="section-title">Shop By Occasion</h2>
@@ -154,7 +125,12 @@ export default function Home() {
           {homeData.occasions.map((occasion, index) => (
             <Link to="/category" className="occasion-card luxury-card" key={index}>
               <div className="card-media occasion-media">
-                <img src={occasion.image || officeFallback} alt={occasion.name} loading="lazy" />
+                <img
+                  src={occasion.image || PLACEHOLDER_CARD}
+                  alt={occasion.name}
+                  loading="lazy"
+                  onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_CARD; }}
+                />
               </div>
               <div className="card-content"><h3 className="card-title">{occasion.name}</h3></div>
             </Link>
@@ -162,15 +138,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Bottom CTA */}
       <section className="cta-section">
         <div className="cta-content">
           <div className="cta-text">
             <h2 className="cta-title">Fragrances crafted to inspire</h2>
             <p className="cta-subtitle">{homeData.bottomDescription}</p>
-          </div>
-          <div className="cta-visual">
-            <img src={home2Fallback} alt="Perfume Collection" className="cta-image" loading="lazy" />
           </div>
           <div className="cta-action">
             <Link to="/category" className="cta-button primary">Start Shopping</Link>

@@ -3,12 +3,10 @@ services:
     name: fancyperfume-api
     env: node
     rootDir: back
-    # FIX: Force completely clean install every deploy
-    # Render caches node_modules between deploys. When a previous install
-    # failed (old Node 22 crash), it left broken/incomplete modules in cache.
-    # npm install then only adds the "delta" (32 packages) on top of broken cache.
-    # This command nukes everything and reinstalls from scratch every time.
-    buildCommand: npm cache clean --force && rm -rf node_modules && npm install --legacy-peer-deps
+    # CRITICAL: Force completely clean install to clear stale Render build cache
+    # The error "Cannot find module './connectionstate'" (and bulkWriteResult) means
+    # Render is using an incomplete cached node_modules from a previous failed deploy.
+    buildCommand: rm -rf node_modules && npm install --legacy-peer-deps
     startCommand: npm start
     envVars:
       - key: NODE_ENV
