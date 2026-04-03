@@ -16,6 +16,15 @@ import LP2Fallback    from "./img/sports.jpg";
 import LP3Fallback    from "./img/sports.jpg";
 import LP4Fallback    from "./img/sports.jpg";
 import LP5Fallback    from "./img/sports.jpg";
+const API = import.meta.env.VITE_API_URL;
+
+// Smart resolver: Cloudinary https:// used as-is; legacy /uploads/ gets API base prepended
+const resolveImg = (url, fallback) => {
+  if (!url) return fallback;
+  if (url.startsWith('http')) return url;
+  return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 
 const DEFAULT_LATEST = [
   { name: "Abeer",       image: LP1Fallback },
@@ -61,13 +70,13 @@ export default function Home() {
           latestProducts: Array.isArray(data.latestProducts) && data.latestProducts.length
             ? data.latestProducts.map((p, idx) => ({
                 name:  p.name  || prev.latestProducts[idx]?.name  || `Product ${idx + 1}`,
-                image: p.image ? `${import.meta.env.VITE_API_URL}/${p.image}` : prev.latestProducts[idx]?.image || LP1Fallback,
+                image: resolveImg(p.image, prev.latestProducts[idx]?.image || LP1Fallback),
               }))
             : prev.latestProducts,
           occasions: Array.isArray(data.occasions) && data.occasions.length
             ? data.occasions.map((o, idx) => ({
                 name:  o.name  || prev.occasions[idx]?.name  || `Occasion ${idx + 1}`,
-                image: o.image ? `${import.meta.env.VITE_API_URL}/${o.image}` : prev.occasions[idx]?.image || officeFallback,
+                image: resolveImg(o.image, prev.occasions[idx]?.image || officeFallback),
               }))
             : prev.occasions,
           bottomDescription: data.bottomDescription || prev.bottomDescription,

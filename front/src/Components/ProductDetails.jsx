@@ -9,8 +9,9 @@ const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 
 const imgSrc = (url) => {
   if (!url) return PLACEHOLDER;
-  if (url.startsWith('http')) return url;
-  return `${import.meta.env.VITE_API_URL}${url}`;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;  // Cloudinary or external
+  const base = import.meta.env.VITE_API_URL;
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;  // legacy /uploads/ path
 };
 
 const ProductDetails = () => {
