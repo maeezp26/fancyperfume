@@ -4,16 +4,16 @@ const ProductSchema = new mongoose.Schema({
   name:        { type: String, required: true, trim: true },
   category:    { type: [String], required: true },
   price:       { type: Number, required: true, min: 0 },
-  description: { type: String, required: true },
-  imageUrl:    { type: String, required: true },
+  // NOT required — admin can add later, empty string is fine
+  description: { type: String, default: '' },
+  imageUrl:    { type: String, default: '' },
   notes: {
-    top:    [{ name: String, imageUrl: String }],
-    middle: [{ name: String, imageUrl: String }],
-    base:   [{ name: String, imageUrl: String }],
+    top:    [{ name: String, imageUrl: { type: String, default: '' } }],
+    middle: [{ name: String, imageUrl: { type: String, default: '' } }],
+    base:   [{ name: String, imageUrl: { type: String, default: '' } }],
   },
 }, { timestamps: true });
 
-// DB PERFORMANCE: text index for search, category for filtering
 ProductSchema.index({ name: 'text', description: 'text' });
 ProductSchema.index({ category: 1 });
 

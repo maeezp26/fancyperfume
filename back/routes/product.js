@@ -1,140 +1,155 @@
 // back/routes/product.js
-// Images now stored on Cloudinary — never disappear on Render redeploy
 const express = require('express');
-const path    = require('path');
 const Product = require('../models/Product');
-const { createUploader, deleteImage } = require('../utils/cloudinary');
+const { createUploader, deleteByUrl } = require('../utils/cloudinary');
 
-const router = express.Router();
+const router   = express.Router();
+const uploader = createUploader('products');
 
-// One uploader per folder bucket
-const productUploader = createUploader('products');
-const notesUploader   = createUploader('notes');
-
-const uploadFields = productUploader.fields([
-  { name: 'imageUrl',          maxCount: 1  },
+const rawUpload = uploader.fields([
+  { name: 'image',             maxCount: 1  },
+  { name: 'topNotesImages',    maxCount: 10 },
+  { name: 'middleNotesImages', maxCount: 10 },
+  { name: 'baseNotesImages',   maxCount: 10 },
 ]);
 
-// Notes images handled by a separate uploader instance
-const uploadAllFields = multerCombined();
+// Wrapper that catches multer/Cloudinary errors and returns clean JSON
+const upload = (req, res, next) => {
+  rawUpload(req, res, (err) => {
+    if (err) {
+      console.error('Upload error:', err.message);
+      return res.status(400).json({ success: false, error: 'Image upload failed: ' + err.message });
+    }
+    next();
+  });
+};
 
-function multerCombined() {
-  // We can't mix two CloudinaryStorage instances in one .fields() call,
-  // so we define all fields under one uploader pointing to a shared folder.
-  const { createUploader: cu } = require('../utils/cloudinary');
-  const uploader = cu('products');
-  return uploader.fields([
-    { name: 'imageUrl',          maxCount: 1  },
-    { name: 'topNotesImages',    maxCount: 10 },
-    { name: 'middleNotesImages', maxCount: 10 },
-    { name: 'baseNotesImages',   maxCount: 10 },
-  ]);
-}
-
-// ── GET All Products ──────────────────────────────────────────────────────────
+// ── GET All Products ─────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find().lean();
     res.json(products);
   } catch (err) {
+    console.error('GET /products error:', err);
     res.status(500).json({ error: 'Error fetching products' });
   }
 });
 
-// ── GET Single Product ────────────────────────────────────────────────────────
+// ── GET Single Product ───────────────────────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json(product);
   } catch (err) {
+    console.error('GET /products/:id error:', err);
     res.status(500).json({ error: 'Error fetching product' });
   }
 });
 
-// ── POST Add New Product ──────────────────────────────────────────────────────
-router.post('/', uploadAllFields, async (req, res) => {
+// ── POST Add Product ─────────────────────────────────────────────────────────
+router.post('/', upload, async (req, res) => {
   try {
     const { name, category, price, description, notes } = req.body;
 
-    const parsedNotes    = JSON.parse(notes);
-    const parsedCategory = JSON.parse(category);
+    // Only name, price, category are truly required
+    if (!name || !price) {
+      return res.status(400).json({ success: false, error: 'name and price are required' });
+    }
 
-    // Cloudinary returns file.path as the full HTTPS URL
-    const mapNotes = (arr, files = []) =>
+    let parsedNotes    = { top: [], middle: [], base: [] };
+    let parsedCategory = [];
+    try { parsedNotes    = notes    ? JSON.parse(notes)    : parsedNotes;    } catch(e) { /* ignore */ }
+    try { parsedCategory = category ? JSON.parse(category) : parsedCategory; } catch(e) { /* ignore */ }
+
+    const files = req.files || {};
+    const mapNotes = (arr = [], filesArr = []) =>
       arr.map((note, i) => ({
-        name:     note.name,
-        imageUrl: files[i] ? files[i].path : '',
+        name:     note?.name || '',
+        imageUrl: filesArr?.[i]?.path || '',
       }));
 
     const newProduct = new Product({
-      name,
-      category: parsedCategory,
-      price,
-      description,
-      // Cloudinary: file.path is the full CDN URL
-      imageUrl: req.files?.imageUrl?.[0]?.path || '',
+      name:        name.trim(),
+      category:    parsedCategory,
+      price:       Number(price),
+      description: (description || '').trim(),
+      imageUrl:    files.image?.[0]?.path || '',
       notes: {
-        top:    mapNotes(parsedNotes.top,    req.files?.topNotesImages),
-        middle: mapNotes(parsedNotes.middle, req.files?.middleNotesImages),
-        base:   mapNotes(parsedNotes.base,   req.files?.baseNotesImages),
+        top:    mapNotes(parsedNotes.top,    files.topNotesImages),
+        middle: mapNotes(parsedNotes.middle, files.middleNotesImages),
+        base:   mapNotes(parsedNotes.base,   files.baseNotesImages),
       },
     });
 
     const saved = await newProduct.save();
-    res.json(saved);
+    res.status(201).json({ success: true, product: saved });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error adding product' });
+    console.error('POST /products error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// ── PUT Edit Product ──────────────────────────────────────────────────────────
-router.put('/:id', uploadAllFields, async (req, res) => {
+// ── PUT Edit Product ─────────────────────────────────────────────────────────
+router.put('/:id', upload, async (req, res) => {
   try {
     const { name, category, price, description, notes } = req.body;
 
-    const parsedCategory = JSON.parse(category);
-    const parsedNotes    = JSON.parse(notes);
+    const existing = await Product.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
 
-    const mapNotes = (arr, files = []) =>
+    let parsedCategory = [];
+    let parsedNotes    = { top: [], middle: [], base: [] };
+    try { parsedCategory = category ? JSON.parse(category) : []; } catch(e) { /* ignore */ }
+    try { parsedNotes    = notes    ? JSON.parse(notes)    : parsedNotes; } catch(e) { /* ignore */ }
+
+    const files = req.files || {};
+    const mapNotes = (arr = [], uploadedFiles = [], existingNotes = []) =>
       arr.map((note, i) => ({
-        name:     note.name,
-        imageUrl: files[i] ? files[i].path : (note.imageUrl || ''),
+        name:     note?.name || '',
+        imageUrl: uploadedFiles[i]?.path || note?.imageUrl || existingNotes[i]?.imageUrl || '',
       }));
 
     const updated = {
-      name,
-      category: parsedCategory,
-      price,
-      description,
+      name:        (name || '').trim(),
+      category:    parsedCategory,
+      price:       parseFloat(price),
+      description: (description || '').trim(),
       notes: {
-        top:    mapNotes(parsedNotes.top,    req.files?.topNotesImages),
-        middle: mapNotes(parsedNotes.middle, req.files?.middleNotesImages),
-        base:   mapNotes(parsedNotes.base,   req.files?.baseNotesImages),
+        top:    mapNotes(parsedNotes.top,    files.topNotesImages,    existing.notes?.top),
+        middle: mapNotes(parsedNotes.middle, files.middleNotesImages, existing.notes?.middle),
+        base:   mapNotes(parsedNotes.base,   files.baseNotesImages,   existing.notes?.base),
       },
     };
 
-    // Only update main image if a new one was uploaded
-    if (req.files?.imageUrl?.[0]) {
-      updated.imageUrl = req.files.imageUrl[0].path;
+    if (files.image?.[0]) {
+      await deleteByUrl(existing.imageUrl);
+      updated.imageUrl = files.image[0].path;
     }
 
     const product = await Product.findByIdAndUpdate(req.params.id, updated, { new: true });
-    res.json(product);
+    res.json({ success: true, product });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error updating product' });
+    console.error('PUT /products/:id error:', err);
+    res.status(500).json({ error: 'Error updating product: ' + err.message });
   }
 });
 
-// ── DELETE Product ────────────────────────────────────────────────────────────
+// ── DELETE Product ───────────────────────────────────────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
     const deleted = await Product.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ error: 'Product not found' });
-    res.json({ message: 'Deleted.' });
+
+    await deleteByUrl(deleted.imageUrl);
+    for (const type of ['top', 'middle', 'base']) {
+      for (const note of deleted.notes?.[type] || []) {
+        await deleteByUrl(note.imageUrl);
+      }
+    }
+    res.json({ message: 'Product deleted successfully.' });
   } catch (err) {
+    console.error('DELETE /products/:id error:', err);
     res.status(500).json({ error: 'Error deleting product' });
   }
 });

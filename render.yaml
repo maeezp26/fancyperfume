@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fancyperfume-api
+    env: node
+    rootDir: back
+    # CRITICAL: Clears stale cached node_modules from previous failed deploys
+    buildCommand: rm -rf node_modules && npm install --legacy-peer-deps
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

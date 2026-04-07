@@ -1,63 +1,79 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const About = require("../models/About");
+// back/routes/about.js
+// Images stored on Cloudinary — permanent CDN URLs
 
-const router = express.Router();
+const express = require('express');
+const About   = require('../models/About');
+const { createUploader, deleteByUrl } = require('../utils/cloudinary');
 
-// Setup multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/about");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage });
+const router   = express.Router();
+const uploader = createUploader('about');
 
-// Get about page
-router.get("/", async (req, res) => {
+// About has a variable number of sections (up to ~10), each with one optional image
+const upload = uploader.array('images', 10);
+
+// ── GET /api/about ────────────────────────────────────────────────────────────
+router.get('/', async (req, res) => {
   try {
-    const about = await About.findOne();
+    const about = await About.findOne().lean();
     if (!about) {
-      // If no data, initialize a new one
+      // Seed with defaults on first access
       const newAbout = new About({ sections: [] });
       await newAbout.save();
       return res.json(newAbout);
     }
     res.json(about);
   } catch (error) {
-    res.status(500).json({ error: "Error fetching about page data" });
+    console.error('GET /about error:', error);
+    res.status(500).json({ error: 'Error fetching about page data' });
   }
 });
 
-// Update about page
-// Expecting sections[] with title, content, and optionally files for images
-router.put("/", upload.array("images"), async (req, res) => {
+// ── PUT /api/about ────────────────────────────────────────────────────────────
+router.put('/', upload, async (req, res) => {
   try {
-    const { sections } = JSON.parse(req.body.data);
-    const files = req.files;
+    const { sections } = JSON.parse(req.body.data || '{"sections":[]}');
+    const files = req.files || [];
 
-    // Map files to sections
+    // Track which section index maps to which uploaded file
+    // files[] only contains entries for sections that actually had a file selected,
+    // so we use a running counter
+    let fileIdx = 0;
+
     const updatedSections = sections.map((section, index) => {
-      if (files[index]) {
-        section.imageUrl = `/uploads/about/${files[index].filename}`;
-      }
+      const hasFile = files[fileIdx] && parseInt(files[fileIdx].fieldname?.replace(/\D/g, '')) === index;
+      // fallback: just consume next file for any section that doesn't already have an imageUrl
+      // Actually multer.array doesn't give us per-index info, so we check the original
+      // section data to determine whether to update the image
       return section;
+    });
+
+    // Better approach: iterate files array and match to sections by order
+    // We can't know which section each file belongs to without per-field names.
+    // The frontend sends files in section order, skipping sections with no new file.
+    // We use a flag in section data: if section.newImage === true, consume next file.
+    let fi = 0;
+    const finalSections = sections.map((section) => {
+      if (section._replaceImage && files[fi]) {
+        const url = files[fi].path; // Cloudinary URL
+        fi++;
+        return { title: section.title, content: section.content, imageUrl: url };
+      }
+      // Keep existing imageUrl (could be Cloudinary URL from before)
+      return { title: section.title, content: section.content, imageUrl: section.imageUrl || '' };
     });
 
     let about = await About.findOne();
     if (!about) {
-      about = new About({ sections: updatedSections });
+      about = new About({ sections: finalSections });
     } else {
-      about.sections = updatedSections;
+      about.sections = finalSections;
     }
-
     await about.save();
-    res.json({ message: "About page updated successfully!", about });
+
+    res.json({ message: 'About page updated successfully!', about });
   } catch (error) {
-    res.status(500).json({ error: "Error updating about page" });
+    console.error('PUT /about error:', error);
+    res.status(500).json({ error: 'Error updating about page: ' + error.message });
   }
 });
 

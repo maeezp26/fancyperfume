@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 import "./ProductAdmin.css";
 import axios from "axios";
 
+// Smart URL resolver — handles Cloudinary https:// and legacy /uploads/ paths
+const API = import.meta.env.VITE_API_URL;
+const resolveImg = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('blob:')) return url;
+  return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function ProductAdmin() {
   const [products, setProducts] = useState([]);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -27,7 +35,7 @@ export default function ProductAdmin() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
- const API_URL = `${import.meta.env.VITE_API_URL}/api/products`;
+  const API_URL = `${import.meta.env.VITE_API_URL}/api/products`;
 
   useEffect(() => {
     fetchProducts();
@@ -148,34 +156,34 @@ export default function ProductAdmin() {
     const notesPayload = {
       top: formData.notes.top.map((n) => ({
         name: n.name.trim(),
-        imageUrl: n.imageUrl || "",
+        imageUrl: "",
       })),
       middle: formData.notes.middle.map((n) => ({
         name: n.name.trim(),
-        imageUrl: n.imageUrl || "",
+        imageUrl: "",
       })),
       base: formData.notes.base.map((n) => ({
         name: n.name.trim(),
-        imageUrl: n.imageUrl || "",
+        imageUrl: "",
       })),
     };
+
     fd.append("notes", JSON.stringify(notesPayload));
 
-  formData.notes.top.forEach((n) => {
-  if (n.image) fd.append("topNotesImages", n.image);
-});
+    formData.notes.top.forEach((n) => {
+      if (n.image) fd.append("topNotesImages", n.image);
+    });
 
-formData.notes.middle.forEach((n) => {
-  if (n.image) fd.append("middleNotesImages", n.image);
-});
+    formData.notes.middle.forEach((n) => {
+      if (n.image) fd.append("middleNotesImages", n.image);
+    });
 
-formData.notes.base.forEach((n) => {
-  if (n.image) fd.append("baseNotesImages", n.image);
-});
-
+    formData.notes.base.forEach((n) => {
+      if (n.image) fd.append("baseNotesImages", n.image);
+    });
 
     if (formData.image) {
-      fd.append("imageUrl", formData.image);
+      fd.append("image", formData.image);
     }
 
     fd.append("name", formData.name.trim());
@@ -193,23 +201,12 @@ formData.notes.base.forEach((n) => {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
+
       setShowProductModal(false);
-      setFormData({
-        name: "",
-        category: [],
-        price: "",
-        description: "",
-        image: null,
-        notes: {
-          top: [{ name: "", image: null }],
-          middle: [{ name: "", image: null }],
-          base: [{ name: "", image: null }],
-        },
-      });
       fetchProducts();
     } catch (err) {
-      console.error(err);
-      alert("Error saving product. Please check console for details.");
+      console.error("❌ ERROR:", err.response?.data || err.message);
+      alert("Error saving product");
     } finally {
       setLoading(false);
     }
@@ -245,7 +242,7 @@ formData.notes.base.forEach((n) => {
         ? prod.category
         : [prod.category].filter(Boolean);
       const matchesCategory = cat.some(
-        (c) => c?.toLowerCase() === normalizedCategory
+        (c) => c?.toLowerCase() === normalizedCategory,
       );
       if (!matchesCategory) return false;
     }
@@ -376,12 +373,12 @@ formData.notes.base.forEach((n) => {
                             className="product-image-wrapper"
                             onClick={() =>
                               handleImageClick(
-                                `${import.meta.env.VITE_API_URL}${prod.imageUrl}`
+                                resolveImg(prod.imageUrl),
                               )
                             }
                           >
                             <img
-                              src={`${import.meta.env.VITE_API_URL}${prod.imageUrl}`}
+                              src={prod.imageUrl}
                               alt={prod.name}
                               className="product-image"
                             />
@@ -412,15 +409,11 @@ formData.notes.base.forEach((n) => {
                           {(prod.notes?.[type] || [])
                             .slice(0, 2)
                             .map((n, i) => (
-                              <div
-                                key={i}
-                                className="note-item"
-                                title={n.name}
-                              >
+                              <div key={i} className="note-item" title={n.name}>
                                 <div className="note-img-container">
                                   {n.imageUrl ? (
                                     <img
-                                      src={`${import.meta.env.VITE_API_URL}${n.imageUrl}`}
+                                      src={resolveImg(n.imageUrl)}
                                       alt={n.name}
                                       className="note-img"
                                     />
@@ -467,7 +460,10 @@ formData.notes.base.forEach((n) => {
 
       {/* Product Modal */}
       {showProductModal && (
-        <div className="luxury-modal" onClick={() => setShowProductModal(false)}>
+        <div
+          className="luxury-modal"
+          onClick={() => setShowProductModal(false)}
+        >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{isEditMode ? "✏️ Edit Product" : "➕ Add New Product"}</h3>
@@ -554,7 +550,7 @@ formData.notes.base.forEach((n) => {
                   <div className="current-image-preview">
                     <span>Current Image:</span>
                     <img
-                      src={`${import.meta.env.VITE_API_URL}${selectedProduct.imageUrl}`}
+                      src={resolveImg(selectedProduct.imageUrl)}
                       alt="Current"
                     />
                   </div>
@@ -570,7 +566,9 @@ formData.notes.base.forEach((n) => {
               <div className="notes-section">
                 {["top", "middle", "base"].map((type) => (
                   <div key={type} className="notes-group">
-                    <h4>{type.charAt(0).toUpperCase() + type.slice(1)} Notes</h4>
+                    <h4>
+                      {type.charAt(0).toUpperCase() + type.slice(1)} Notes
+                    </h4>
                     {formData.notes[type].map((n, i) => (
                       <div key={i} className="note-editor">
                         <input
@@ -584,7 +582,7 @@ formData.notes.base.forEach((n) => {
                         />
                         {n.imageUrl && (
                           <img
-                            src={`${import.meta.env.VITE_API_URL}${n.imageUrl}`}
+                            src={resolveImg(n.imageUrl)}
                             alt="Current note"
                             className="note-preview"
                             title="Current image"
@@ -593,11 +591,7 @@ formData.notes.base.forEach((n) => {
                         <input
                           type="file"
                           onChange={(e) =>
-                            handleNoteImageChange(
-                              type,
-                              i,
-                              e.target.files[0]
-                            )
+                            handleNoteImageChange(type, i, e.target.files[0])
                           }
                           accept="image/*"
                         />

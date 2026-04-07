@@ -1,15 +1,14 @@
 // back/routes/home.js
-// Images now stored on Cloudinary — never disappear on Render redeploy
+// Images stored on Cloudinary — permanent CDN URLs
+
 const express = require('express');
 const Home    = require('../models/Home');
-const { createUploader } = require('../utils/cloudinary');
+const { createUploader, deleteByUrl } = require('../utils/cloudinary');
 
-const router = express.Router();
+const router   = express.Router();
+const uploader = createUploader('home');
 
-// Separate Cloudinary folders for clarity
-const homeUploader = createUploader('home');
-
-const upload = homeUploader.fields([
+const upload = uploader.fields([
   { name: 'latestProducts[0]', maxCount: 1 },
   { name: 'latestProducts[1]', maxCount: 1 },
   { name: 'latestProducts[2]', maxCount: 1 },
@@ -22,80 +21,69 @@ const upload = homeUploader.fields([
   { name: 'occasions[4]',      maxCount: 1 },
 ]);
 
-// GET /api/home
+// ── GET /api/home ─────────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const homeData = await Home.findOne();
+    const homeData = await Home.findOne().lean();
     res.json(homeData || {});
   } catch (error) {
+    console.error('GET /home error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// POST /api/home
+// ── POST /api/home (upsert) ───────────────────────────────────────────────────
 router.post('/', upload, async (req, res) => {
   try {
     const data = JSON.parse(req.body.data || '{}');
 
     let home = await Home.findOne();
-    if (!home) {
-      home = new Home({ latestProducts: [], occasions: [] });
-    }
+    if (!home) home = new Home({ latestProducts: [], occasions: [] });
 
-    // ---- LATEST PRODUCTS ----
+    // ── Latest Products ───────────────────────────────────────────────────────
     const latestProducts = [];
     for (let i = 0; i < 5; i++) {
-      const product   = data.latestProducts?.[i] || {};
-      const fileField = `latestProducts[${i}]`;
-      const file      = req.files?.[fileField]?.[0];
+      const incoming  = data.latestProducts?.[i] || {};
+      const existing  = home.latestProducts[i]  || {};
+      const file      = req.files?.[`latestProducts[${i}]`]?.[0];
 
       if (file) {
-        // New Cloudinary upload — file.path is the full CDN URL
-        latestProducts[i] = {
-          name:  product.name || `Product ${i + 1}`,
-          image: file.path,  // full https://res.cloudinary.com/... URL
-        };
+        // New image → delete old Cloudinary image if it exists
+        await deleteByUrl(existing.image);
+        latestProducts[i] = { name: incoming.name || existing.name || `Product ${i + 1}`, image: file.path };
       } else {
-        // Keep existing
-        latestProducts[i] = {
-          name:  product.name  || home.latestProducts[i]?.name  || `Product ${i + 1}`,
-          image: home.latestProducts[i]?.image || '',
-        };
+        // Keep existing image; only update name if provided
+        latestProducts[i] = { name: incoming.name || existing.name || `Product ${i + 1}`, image: existing.image || '' };
       }
     }
     home.latestProducts = latestProducts;
 
-    // ---- OCCASIONS ----
+    // ── Occasions ─────────────────────────────────────────────────────────────
     const occasions = [];
     for (let i = 0; i < 5; i++) {
-      const occasion  = data.occasions?.[i] || {};
-      const fileField = `occasions[${i}]`;
-      const file      = req.files?.[fileField]?.[0];
+      const incoming = data.occasions?.[i] || {};
+      const existing = home.occasions[i]   || {};
+      const file     = req.files?.[`occasions[${i}]`]?.[0];
 
       if (file) {
-        occasions[i] = {
-          name:  occasion.name || `Occasion ${i + 1}`,
-          image: file.path,
-        };
+        await deleteByUrl(existing.image);
+        occasions[i] = { name: incoming.name || existing.name || `Occasion ${i + 1}`, image: file.path };
       } else {
-        occasions[i] = {
-          name:  occasion.name  || home.occasions[i]?.name  || `Occasion ${i + 1}`,
-          image: home.occasions[i]?.image || '',
-        };
+        occasions[i] = { name: incoming.name || existing.name || `Occasion ${i + 1}`, image: existing.image || '' };
       }
     }
     home.occasions = occasions;
 
-    // Text fields
-    if (data.bannerHeading)    home.bannerHeading    = data.bannerHeading;
-    if (data.bannerSubHeading) home.bannerSubHeading = data.bannerSubHeading;
-    if (data.tagline)          home.tagline          = data.tagline;
-    if (data.bottomDescription)home.bottomDescription= data.bottomDescription;
+    // ── Optional text fields ──────────────────────────────────────────────────
+    if (data.bannerHeading)     home.bannerHeading     = data.bannerHeading;
+    if (data.bannerSubHeading)  home.bannerSubHeading  = data.bannerSubHeading;
+    if (data.tagline)           home.tagline           = data.tagline;
+    if (data.bottomDescription) home.bottomDescription = data.bottomDescription;
 
     await home.save();
-    res.json({ message: '✅ Home data updated successfully!' });
+    res.json({ message: '✅ Home page updated successfully!' });
   } catch (error) {
-    console.error('Home save error:', error);
+    console.error('POST /home error:', error);
     res.status(500).json({ error: error.message });
   }
 });
