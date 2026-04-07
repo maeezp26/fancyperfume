@@ -22,6 +22,7 @@ const authRoutes     = require('./routes/auth');
 const cartRoutes     = require('./routes/cart');
 const orderRoutes    = require('./routes/orderRoutes');
 
+
 const app = express();
 
 app.set('trust proxy', 1);
@@ -46,6 +47,7 @@ app.use(cors({
   },
   credentials: true,
 }));
+
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 const generalLimiter = rateLimit({
@@ -97,16 +99,27 @@ app.use('/api/orders',   orderRoutes); // includes /admin route with adminMiddle
 // ── Payment routes ────────────────────────────────────────────────────────────
 app.post('/api/payment/order', paymentLimiter, authMiddleware, async (req, res) => {
   try {
-    const { amount } = req.body;
-    if (!amount || amount <= 0) return res.status(400).json({ success: false, message: 'Invalid amount' });
+    // ✅ SAFE destructuring
+    console.log("BODY:", req.body);
+    const { amount } = req.body || {};
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid amount' });
+    }
 
     const order = await razorpay.orders.create({
-      amount:   Math.round(amount * 100), // paise, integer
+      amount: Math.round(amount * 100),
       currency: 'INR',
-      receipt:  `perfume_${Date.now()}`,
+      receipt: `perfume_${Date.now()}`,
     });
 
-    res.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency });
+    res.json({
+      success: true,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency
+    });
+
   } catch (error) {
     console.error('Order creation error:', error);
     res.status(500).json({ success: false, message: 'Order creation failed' });

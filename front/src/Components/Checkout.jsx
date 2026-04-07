@@ -234,6 +234,7 @@ export default function Checkout() {
           },
         }),
       });
+      console.log("Sending amount:", computedTotal);
 
       const orderData = await orderRes.json();
       if (!orderData.success) throw new Error(orderData.message || 'Order failed');
