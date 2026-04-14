@@ -4,11 +4,15 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import './css/HeaderFooter.css';
 import './css/Cart.css';
+import { assetUrl } from '../utils/api';
 
 export default function Cart() {
  const { cart, loading, updateQuantity, updateMlSize, removeFromCart, clearCart } = useCart();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const hasCartItems = Array.isArray(cart?.items) && cart.items.length > 0;
+  const isInitialLoading = loading && !hasCartItems;
+  const isUpdatingCart = loading && hasCartItems;
 
   const handleQuantityChange = async (itemId, newQuantity) => {
     if (newQuantity < 1) {
@@ -72,7 +76,7 @@ if (!isAuthenticated()){
 }
 
 // Loading
-if (loading) {
+if (isInitialLoading) {
   return (
     <main className="luxury-cart">
       <section className="cart-hero">
@@ -89,7 +93,7 @@ if (loading) {
 }
 
 // Empty cart
-if (!cart || cart.items.length === 0) {
+if (!hasCartItems) {
   return (
     <main className="luxury-cart">
       <section className="cart-hero">
@@ -123,26 +127,29 @@ if (!cart || cart.items.length === 0) {
         <div className="cart-header">
           <div>
             <h2 className="section-title">Your Selection</h2>
-            <p className="items-count">{cart.items.length} items</p>
+            <p className="items-count">
+              {cart.items.length} items{isUpdatingCart ? ' • Updating...' : ''}
+            </p>
           </div>
-          <button type="button" onClick={handleClearCart} className="clear-cart-btn">
+          <button
+            type="button"
+            onClick={handleClearCart}
+            className="clear-cart-btn"
+            disabled={isUpdatingCart}
+          >
             Clear Cart
           </button>
         </div>
 
 
 
-        <div className="cart-layout">
+        <div className="cart-layout" aria-busy={isUpdatingCart}>
           <div className="cart-items-section">
             {cart.items.map((item) => (    
               <div className="luxury-cart-item" key={item._id}>
                 <div className="item-image">
                   <img
-                   src={
-  item.product.imageUrl.startsWith('http')
-    ? item.product.imageUrl
-    : `${import.meta.env.VITE_API_URL}${item.product.imageUrl}`
-}
+                   src={assetUrl(item.product.imageUrl)}
                   />
                 </div>
 
@@ -168,6 +175,7 @@ if (!cart || cart.items.length === 0) {
                       type="button" 
                         key={size}
                         className={`size-btn ${item.mlSize === size ? 'active' : ''}`}
+                        disabled={isUpdatingCart}
                         onClick={(e) => handleMlChange(e, item._id, size)}  // ✅ e FIRST, then item._id, then size
                       >
                         {size}ml
@@ -180,6 +188,7 @@ if (!cart || cart.items.length === 0) {
                   <button
                   type="button" 
                     className="qty-btn decrease"
+                    disabled={isUpdatingCart}
                     onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
                   >
                     -
@@ -188,6 +197,7 @@ if (!cart || cart.items.length === 0) {
                   <button
                   type="button" 
                     className="qty-btn increase"
+                    disabled={isUpdatingCart}
                     onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
                   >
                     +
@@ -201,6 +211,7 @@ if (!cart || cart.items.length === 0) {
                 <button
                 type="button" 
                   className="remove-btn"
+                  disabled={isUpdatingCart}
                   onClick={() => handleRemoveItem(item._id)}
                 >
                   <span>✕</span>
@@ -230,11 +241,21 @@ if (!cart || cart.items.length === 0) {
     <strong>₹{cart.totalAmount.toLocaleString()}</strong>
   </div>
 
-  <button   type="button" onClick={handleCheckout} className="checkout-btn primary">
+  <button
+    type="button"
+    onClick={handleCheckout}
+    className="checkout-btn primary"
+    disabled={isUpdatingCart}
+  >
     Proceed to Checkout
   </button>
 
-  <button type="button" onClick={() => navigate('/category')} className="continue-shopping-btn">
+  <button
+    type="button"
+    onClick={() => navigate('/category')}
+    className="continue-shopping-btn"
+    disabled={isUpdatingCart}
+  >
     Continue Shopping
   </button>
 </div>

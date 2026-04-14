@@ -4,13 +4,13 @@ import AddToCartButton from "./AddToCartButton";
 import { useCart } from '../contexts/CartContext';
 import "./css/ProductDetails.css";
 import axios from "axios";
+import { apiUrl, assetUrl } from "../utils/api";
 
 const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%231a1a2e' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='72'%3E🌿%3C/text%3E%3C/svg%3E`;
 
 const imgSrc = (url) => {
   if (!url) return PLACEHOLDER;
-  if (url.startsWith('http')) return url;
-  return `${import.meta.env.VITE_API_URL}${url}`;
+  return assetUrl(url);
 };
 
 const ProductDetails = () => {
@@ -30,7 +30,7 @@ const ProductDetails = () => {
   useEffect(() => {
     if (!locationProduct && id) {
       setFetchLoading(true);
-      axios.get(`${import.meta.env.VITE_API_URL}/api/products/${id}`)
+      axios.get(apiUrl(`/api/products/${id}`))
         .then(res => setProduct(res.data))
         .catch(() => setProduct(null))
         .finally(() => setFetchLoading(false));

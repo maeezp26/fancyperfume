@@ -5,8 +5,7 @@ import axios from "axios";
 import AddToCartButton from "./AddToCartButton";
 import "./css/HeaderFooter.css";
 import "./css/Category.css";
-
-const API = import.meta.env.VITE_API_URL;
+import { apiUrl, assetUrl } from "../utils/api";
 
 const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='400' viewBox='0 0 300 400'%3E%3Crect fill='%231a1a2e' width='300' height='400'/%3E%3Ctext x='50%25' y='45%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='60'%3E%F0%9F%8C%BF%3C/text%3E%3Ctext x='50%25' y='65%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='14' opacity='0.6'%3ENo Image%3C/text%3E%3C/svg%3E`;
 
@@ -18,8 +17,7 @@ const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
  */
 const resolveImg = (url) => {
   if (!url) return PLACEHOLDER;
-  if (url.startsWith('http')) return url;        // Cloudinary or external
-  return `${API}${url.startsWith('/') ? '' : '/'}${url}`; // legacy Render path
+  return assetUrl(url) || PLACEHOLDER;
 };
 
 const openExternalLink = (url) => {
@@ -49,7 +47,7 @@ export default function Category() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API}/api/products`);
+        const response = await axios.get(apiUrl("/api/products"));
         setAllProducts(response.data);
         setFilteredProducts(response.data);
       } catch (error) {

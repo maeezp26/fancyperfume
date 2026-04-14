@@ -7,6 +7,7 @@ import './css/Checkout.css';
 import { toast } from 'react-toastify';
 import { getIndiaCitiesOfState, getIndiaStates } from '../utils/indiaLocations';
 import SearchableSelect from './common/SearchableSelect';
+import { apiUrl, assetUrl } from '../utils/api';
 import {
   isValidEmail,
   isValidPhone,
@@ -214,7 +215,7 @@ export default function Checkout() {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Please login again');
 
-      const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/order`, {
+      const orderRes = await fetch(apiUrl('/api/payment/order'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,7 +255,7 @@ export default function Checkout() {
         theme: { color: '#D4AF37' },
         handler: async function (response) {
           try {
-            const verifyRes = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/verify`, {
+            const verifyRes = await fetch(apiUrl('/api/payment/verify'), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -546,9 +547,7 @@ export default function Checkout() {
                   <div className="item-preview">
                     <img
                       src={
-                        item.product.imageUrl.startsWith('http')
-                          ? item.product.imageUrl
-                          : `/uploads${item.product.imageUrl}` // ✅ Proxy path
+                        assetUrl(item.product.imageUrl)
                       }
                       alt={item.product.name}
                     />

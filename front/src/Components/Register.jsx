@@ -5,6 +5,7 @@ import "./css/Login.css";   // shares the same auth CSS
 import { toast } from "react-toastify";
 import { getIndiaCities } from "../utils/indiaLocations";
 import SearchableSelect from "./common/SearchableSelect";
+import { apiUrl } from "../utils/api";
 import {
   PASSWORD_MIN_LENGTH,
   validateContact,
@@ -79,7 +80,7 @@ export default function Register() {
   const handleGoogleResponse = async (response) => {
     setGoogleLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
+      const res = await fetch(apiUrl("/api/auth/google"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential }),

@@ -3,15 +3,13 @@ import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./css/MyOrders.css";
-
-const API = import.meta.env.VITE_API_URL;
+import { apiUrl, assetUrl } from "../utils/api";
 
 const PLACEHOLDER = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect fill='%231a1a2e' width='120' height='120'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23d4af37' font-size='40'%3E%F0%9F%8C%BF%3C/text%3E%3C/svg%3E`;
 
 const imgSrc = (url) => {
   if (!url) return PLACEHOLDER;
-  if (url.startsWith('http')) return url;
-  return `${API}${url}`;
+  return assetUrl(url);
 };
 
 const statusConfig = {
@@ -34,7 +32,7 @@ export default function MyOrders() {
     const fetchOrders = async () => {
       try {
         // FIX: was literal string "import.meta.env.VITE_API_URL/api/orders" — never worked
-        const res = await axios.get(`${API}/api/orders`, {
+        const res = await axios.get(apiUrl("/api/orders"), {
           headers: { Authorization: `Bearer ${token}` },
         });
         setOrders(res.data);

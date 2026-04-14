@@ -2,14 +2,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./AboutAdmin.css";
-
-const API = import.meta.env.VITE_API_URL;
+import { apiUrl, assetUrl } from "../../utils/api";
 
 // Resolve stored URL (Cloudinary https:// or legacy /uploads/) for display
 const resolveImg = (url) => {
   if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('blob:')) return url;
-  return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+  return assetUrl(url);
 };
 
 const DEFAULT_SECTIONS = [
@@ -32,7 +30,7 @@ export default function AboutAdmin() {
       try {
         setLoading(true);
         // FIX: was literal string "import.meta.env.VITE_API_URL/api/about"
-        const res = await axios.get(`${API}/api/about`);
+        const res = await axios.get(apiUrl("/api/about"));
         if (res.data?.sections?.length > 0) {
           setSections(res.data.sections);
         }
@@ -85,7 +83,7 @@ export default function AboutAdmin() {
       });
 
       // FIX: was literal string "import.meta.env.VITE_API_URL/api/about"
-      await axios.put(`${API}/api/about`, formData, {
+      await axios.put(apiUrl("/api/about"), formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -94,7 +92,7 @@ export default function AboutAdmin() {
       setPreviews({});
 
       // Refresh from server
-      const res = await axios.get(`${API}/api/about`);
+      const res = await axios.get(apiUrl("/api/about"));
       if (res.data?.sections?.length > 0) setSections(res.data.sections);
     } catch (error) {
       console.error("Save error:", error);

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { apiUrl } from '../utils/api';
 
 const CartContext = createContext();
 
@@ -36,7 +37,7 @@ export const CartProvider = ({ children }) => {
     }
     try {
       setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/cart`, {
+      const response = await axios.get(apiUrl('/api/cart'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart({ items: response.data?.items || [], totalAmount: response.data?.totalAmount || 0 });
@@ -56,7 +57,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/cart/add`,
+        apiUrl('/api/cart/add'),
         { productId, quantity, mlSize },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -73,7 +74,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/cart/update/${itemId}`,
+        apiUrl(`/api/cart/update/${itemId}`),
         { quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -90,7 +91,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/cart/update-ml/${itemId}`,
+        apiUrl(`/api/cart/update-ml/${itemId}`),
         { mlSize },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -107,7 +108,7 @@ export const CartProvider = ({ children }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/cart/remove/${itemId}`,
+        apiUrl(`/api/cart/remove/${itemId}`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setCart(response.data.cart);
@@ -122,7 +123,7 @@ export const CartProvider = ({ children }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/cart/clear`, {
+      await axios.delete(apiUrl('/api/cart/clear'), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart({ items: [], totalAmount: 0 });

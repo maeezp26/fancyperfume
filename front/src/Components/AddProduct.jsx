@@ -26,11 +26,15 @@ const AddProduct = () => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('name', product.name);
-    formData.append('category', product.category);
+    // Backend expects category as JSON array string
+    formData.append('category', JSON.stringify([product.category].filter(Boolean)));
     formData.append('price', product.price);
     formData.append('image', selectedFile);
 
-    axios.post('import.meta.env.VITE_API_URL/addProduct', formData)
+    const apiBase = import.meta.env.VITE_API_URL;
+    axios.post(`${apiBase}/api/products`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
       .then(response => {
         console.log("Product added successfully", response);
         alert("Product Added");

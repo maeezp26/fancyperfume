@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./FeedbackAdmin.css";
 import axios from "axios";
+import { apiUrl } from "../../utils/api";
 
 const StarRating = ({ rating }) => (
   <div className="star-row">
@@ -20,7 +21,7 @@ export default function FeedbackAdmin() {
     const fetchFeedback = async () => {
       try {
         // FIX: was literal string "import.meta.env.VITE_API_URL/api/feedback" — not a template literal!
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/feedback`);
+        const response = await axios.get(apiUrl("/api/feedback"));
         setFeedbacks(response.data || []);
       } catch (error) {
         console.error("Error fetching feedbacks:", error);
@@ -35,7 +36,7 @@ export default function FeedbackAdmin() {
     if (!window.confirm("Delete this feedback permanently?")) return;
     setDeletingId(id);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/api/feedback/${id}`);
+      await axios.delete(apiUrl(`/api/feedback/${id}`));
       setFeedbacks(prev => prev.filter(f => f._id !== id));
     } catch (error) {
       console.error("Error deleting feedback:", error);

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./css/HeaderFooter.css";
 import "./css/Feedback.css";
+import { apiUrl } from "../utils/api";
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -23,7 +24,7 @@ export default function Feedback() {
     setLoading(true);
     try {
       // FIX: was literal string — now correct template literal
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/feedback/add`, { ...formData, rating });
+      await axios.post(apiUrl("/api/feedback/add"), { ...formData, rating });
       setSubmitSuccess(true);
       setFormData({ name: "", emailOrPhone: "", city: "", message: "" });
       setRating(0);

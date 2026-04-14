@@ -3,14 +3,13 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./css/HeaderFooter.css";
 import "./css/About.css";
+import { apiUrl, assetUrl } from "../utils/api";
 
 import p2 from "./img/p2.jpg";
 import p3 from "./img/p3.jpg";
 import p4 from "./img/p4.jpg";
 import p5 from "./img/p5.jpg";
 import p6 from "./img/p6.jpg";
-
-const API = import.meta.env.VITE_API_URL;
 
 /**
  * Resolves any stored image URL to a displayable src:
@@ -21,8 +20,7 @@ const API = import.meta.env.VITE_API_URL;
  */
 const resolveImg = (url, fallback) => {
   if (!url) return fallback;
-  if (url.startsWith('http') || url.startsWith('blob:')) return url;
-  return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+  return assetUrl(url);
 };
 
 const defaultSections = [
@@ -55,7 +53,7 @@ export default function About() {
       try {
         setLoading(true);
         // FIX: was literal string "import.meta.env.VITE_API_URL/api/about"
-        const res = await axios.get(`${API}/api/about`);
+        const res = await axios.get(apiUrl("/api/about"));
         if (!cancelled && res.data?.sections?.length > 0) {
           setSections(res.data.sections);
         }

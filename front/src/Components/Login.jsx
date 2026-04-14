@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import "./css/Login.css";
 import { toast } from "react-toastify";
 import { isBlank } from "../utils/validation";
+import { apiUrl } from "../utils/api";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -43,7 +44,7 @@ export default function Login() {
   const handleGoogleResponse = async (response) => {
     setGoogleLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/google`, {
+      const res = await fetch(apiUrl("/api/auth/google"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential }),

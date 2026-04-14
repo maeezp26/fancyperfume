@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { apiUrl } from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
       if (storedToken && storedUser) {
         try {
-          const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/profile`);
+          const response = await axios.get(apiUrl('/api/auth/profile'));
           setUser(response.data.user);
           setToken(storedToken);
         } catch {
@@ -48,7 +49,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, credentials);
+      const response = await axios.post(apiUrl('/api/auth/login'), credentials);
       const { token: newToken, user: userData } = response.data;
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -62,7 +63,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, userData);
+      const response = await axios.post(apiUrl('/api/auth/register'), userData);
       const { token: newToken, user: newUser } = response.data;
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(newUser));

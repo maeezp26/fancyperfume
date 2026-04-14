@@ -5,7 +5,12 @@ export default function AdminPanel() {
   const [selectedSection, setSelectedSection] = useState('home');
   const [feedbackData, setFeedbackData] = useState([]);
   const [productData, setProductData] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: '', image: null });
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    category: '',
+    price: '',
+    image: null,
+  });
 
   useEffect(() => {
     // Fetch Feedback Data
@@ -30,6 +35,9 @@ export default function AdminPanel() {
 
     const formData = new FormData();
     formData.append('name', newProduct.name);
+    // Backend expects category as JSON array string
+    formData.append('category', JSON.stringify([newProduct.category].filter(Boolean)));
+    formData.append('price', newProduct.price);
     formData.append('image', newProduct.image);
 
     fetch(`${import.meta.env.VITE_API_URL}/api/products`, {
@@ -37,9 +45,12 @@ export default function AdminPanel() {
       body: formData,
     })
       .then((response) => response.json())
-      .then((product) => {
-        setProductData([...productData, product]); // Add the new product to the list
-        setNewProduct({ name: '', image: null });
+      .then((result) => {
+        // back/routes/product.js returns { success: true, product }
+        const created = result?.product || result;
+        if (!created?._id) throw new Error(result?.error || 'Product creation failed');
+        setProductData([...productData, created]); // Add the new product to the list
+        setNewProduct({ name: '', category: '', price: '', image: null });
       })
       .catch((error) => console.error(error));
   };
@@ -77,6 +88,29 @@ export default function AdminPanel() {
               </label>
 
               <label>
+                Category:
+                <input
+                  className="input-fancy"
+                  type="text"
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                  required
+                />
+              </label>
+
+              <label>
+                Price:
+                <input
+                  className="input-fancy"
+                  type="number"
+                  min="0"
+                  value={newProduct.price}
+                  onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                  required
+                />
+              </label>
+
+              <label>
                 Product Image:
                 <input className="input-fancy" type="file" onChange={handleFileChange} required />
               </label>
@@ -99,7 +133,7 @@ export default function AdminPanel() {
                     <td className="table-cell-fancy">
                       <img
                         className="image-fancy"
-                        src={`${import.meta.env.VITE_API_URL}/uploads/${product.image}`}
+                        src={product.imageUrl || ''}
                         alt={product.name}
                       />
                     </td>

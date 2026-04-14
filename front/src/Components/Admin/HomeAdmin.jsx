@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from "react";
 import "./HomeAdmin.css";
 import axios from "axios";
-
-const API = import.meta.env.VITE_API_URL;
+import { apiUrl, assetUrl } from "../../utils/api";
 
 /**
  * Resolves any stored image URL for display:
@@ -14,8 +13,7 @@ const API = import.meta.env.VITE_API_URL;
  */
 const resolveImg = (url) => {
   if (!url) return '';
-  if (url.startsWith('http') || url.startsWith('blob:')) return url;
-  return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+  return assetUrl(url);
 };
 
 const emptyProduct  = (i) => ({ name: `Product ${i + 1}`,  image: '' });
@@ -42,7 +40,7 @@ export default function HomeAdmin() {
   const fetchHomeData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/api/home`);
+      const response = await axios.get(apiUrl("/api/home"));
       const data     = response.data || {};
 
       const pad = (arr, empty, n = 5) => {
@@ -129,7 +127,7 @@ export default function HomeAdmin() {
         }
       });
 
-      await axios.post(`${API}/api/home`, formDataToSend, {
+      await axios.post(apiUrl("/api/home"), formDataToSend, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

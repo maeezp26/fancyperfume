@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./ProductAdmin.css";
 import axios from "axios";
+import { apiUrl, assetUrl } from "../../utils/api";
 
 // Smart URL resolver — handles Cloudinary https:// and legacy /uploads/ paths
-const API = import.meta.env.VITE_API_URL;
 const resolveImg = (url) => {
   if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('blob:')) return url;
-  return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+  return assetUrl(url);
 };
 
 export default function ProductAdmin() {
@@ -35,7 +34,7 @@ export default function ProductAdmin() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_URL = `${import.meta.env.VITE_API_URL}/api/products`;
+  const API_URL = apiUrl("/api/products");
 
   useEffect(() => {
     fetchProducts();
@@ -378,7 +377,7 @@ export default function ProductAdmin() {
                             }
                           >
                             <img
-                              src={prod.imageUrl}
+                              src={resolveImg(prod.imageUrl)}
                               alt={prod.name}
                               className="product-image"
                             />

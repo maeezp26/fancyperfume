@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./css/Profile.css";
-
-const API = import.meta.env.VITE_API_URL;
+import { apiUrl } from "../utils/api";
 
 export default function Profile() {
   const { user, token, login, logout } = useAuth();
@@ -44,7 +43,7 @@ export default function Profile() {
     if (!formData.city.trim()) return toast.error("City cannot be empty");
     setSaving(true);
     try {
-      const res = await axios.put(`${API}/api/auth/profile`,
+      const res = await axios.put(apiUrl("/api/auth/profile"),
         { name: formData.name, city: formData.city },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -66,7 +65,7 @@ export default function Profile() {
     if (pwData.newPassword !== pwData.confirmPassword) return toast.error("Passwords do not match");
     setSaving(true);
     try {
-      await axios.put(`${API}/api/auth/profile`,
+      await axios.put(apiUrl("/api/auth/profile"),
         { currentPassword: pwData.currentPassword, newPassword: pwData.newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );

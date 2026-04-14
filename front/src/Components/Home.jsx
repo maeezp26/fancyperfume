@@ -3,6 +3,7 @@ import "./css/Home.css";
 import "./css/HeaderFooter.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { apiUrl, assetUrl } from "../utils/api";
 
 import home1Fallback from "./img/home1.webp";
 import home2Fallback from "./img/home2.webp";
@@ -49,7 +50,7 @@ export default function Home() {
     let cancelled = false;
     const fetchHomeData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/home`);
+        const response = await axios.get(apiUrl("/api/home"));
         if (cancelled) return;
         const data = response.data;
         if (!data) return;
@@ -60,22 +61,18 @@ export default function Home() {
           tagline:          data.tagline          || prev.tagline,
           latestProducts: Array.isArray(data.latestProducts) && data.latestProducts.length
             ? data.latestProducts.map((p, idx) => ({
-                name:  p.name  || prev.latestProducts[idx]?.name  || `Product ${idx + 1}`,
-               image: p.image
-  ? (p.image.startsWith('http')
-      ? p.image
-      : `${import.meta.env.VITE_API_URL}/${p.image}`)
-  : prev.latestProducts[idx]?.image || LP1Fallback
+                name: p.name || prev.latestProducts[idx]?.name || `Product ${idx + 1}`,
+                image: p.image
+                  ? assetUrl(p.image)
+                  : prev.latestProducts[idx]?.image || LP1Fallback,
               }))
             : prev.latestProducts,
           occasions: Array.isArray(data.occasions) && data.occasions.length
             ? data.occasions.map((o, idx) => ({
-                name:  o.name  || prev.occasions[idx]?.name  || `Occasion ${idx + 1}`,
+                name: o.name || prev.occasions[idx]?.name || `Occasion ${idx + 1}`,
                 image: o.image
-  ? (o.image.startsWith('http')
-      ? o.image
-      : `${import.meta.env.VITE_API_URL}/${o.image}`)
-  : prev.occasions[idx]?.image || officeFallback
+                  ? assetUrl(o.image)
+                  : prev.occasions[idx]?.image || officeFallback,
               }))
             : prev.occasions,
           bottomDescription: data.bottomDescription || prev.bottomDescription,

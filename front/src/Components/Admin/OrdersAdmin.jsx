@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import './OrdersAdmin.css';
+import { apiUrl } from '../../utils/api';
 
 export default function OrdersAdmin() {
   const { user } = useAuth();
@@ -39,7 +40,7 @@ export default function OrdersAdmin() {
     if (!window.confirm('⚠️ Delete ALL orders permanently? This cannot be undone.')) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/clear`, {
+      const res = await fetch(apiUrl('/api/orders/clear'), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -61,7 +62,7 @@ export default function OrdersAdmin() {
     setDeletingId(orderId);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${orderId}`, {
+      const res = await fetch(apiUrl(`/api/orders/${orderId}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -83,7 +84,7 @@ export default function OrdersAdmin() {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/admin`, {
+        const res = await fetch(apiUrl('/api/orders/admin'), {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
