@@ -1,13 +1,59 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useEffect, useState } from "react";
 import "./ProductAdmin.css";
 import axios from "axios";
 import { apiUrl, assetUrl } from "../../utils/api";
 
-// Smart URL resolver — handles Cloudinary https:// and legacy /uploads/ paths
+const PRODUCT_CATEGORIES = [
+  "Attars",
+  "Perfume",
+  "Premium",
+  "Male",
+  "Female",
+  "Unisex",
+  "Celebrity",
+];
+
+const NOTE_TYPES = [
+  { key: "top", label: "Top Notes" },
+  { key: "middle", label: "Middle Notes" },
+  { key: "base", label: "Base Notes" },
+];
+
 const resolveImg = (url) => {
   if (!url) return null;
   return assetUrl(url);
 };
+
+const normalizeCategories = (category) => {
+  if (Array.isArray(category)) {
+    return category.filter(Boolean);
+  }
+
+  return [category].filter(Boolean);
+};
+
+const getCategorySummary = (category, limit = 2) => {
+  const categories = normalizeCategories(category);
+
+  if (categories.length === 0) {
+    return "-";
+  }
+
+  if (categories.length <= limit) {
+    return categories.join(", ");
+  }
+
+  return `${categories.slice(0, limit).join(", ")} +${categories.length - limit}`;
+};
+
+const getDescriptionPreview = (description, limit = 60) => {
+  if (!description) return "No description added.";
+  if (description.length <= limit) return description;
+
+  return `${description.slice(0, limit).trimEnd()}...`;
+};
+
+const formatPrice = (price) => `Rs. ${Number(price || 0).toLocaleString()}`;
 
 export default function ProductAdmin() {
   const [products, setProducts] = useState([]);
@@ -16,7 +62,6 @@ export default function ProductAdmin() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
-
   const [formData, setFormData] = useState({
     name: "",
     category: [],
@@ -29,7 +74,6 @@ export default function ProductAdmin() {
       base: [{ name: "", image: null }],
     },
   });
-
   const [showImageModal, setShowImageModal] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -49,9 +93,7 @@ export default function ProductAdmin() {
     }
   };
 
-  const openAddModal = () => {
-    setIsEditMode(false);
-    setSelectedProduct(null);
+  const resetForm = () => {
     setFormData({
       name: "",
       category: [],
@@ -64,6 +106,17 @@ export default function ProductAdmin() {
         base: [{ name: "", image: null }],
       },
     });
+  };
+
+  const closeProductModal = () => {
+    setShowProductModal(false);
+    setLoading(false);
+  };
+
+  const openAddModal = () => {
+    setIsEditMode(false);
+    setSelectedProduct(null);
+    resetForm();
     setShowProductModal(true);
   };
 
@@ -71,26 +124,26 @@ export default function ProductAdmin() {
     setIsEditMode(true);
     setSelectedProduct(product);
     setFormData({
-      name: product.name,
-      category: Array.isArray(product.category) ? product.category : [],
+      name: product.name || "",
+      category: normalizeCategories(product.category),
       price: product.price || "",
       description: product.description || "",
       image: null,
       notes: {
-        top: (product.notes?.top || []).map((n) => ({
-          name: n.name || "",
+        top: (product.notes?.top || []).map((note) => ({
+          name: note.name || "",
           image: null,
-          imageUrl: n.imageUrl || "",
+          imageUrl: note.imageUrl || "",
         })),
-        middle: (product.notes?.middle || []).map((n) => ({
-          name: n.name || "",
+        middle: (product.notes?.middle || []).map((note) => ({
+          name: note.name || "",
           image: null,
-          imageUrl: n.imageUrl || "",
+          imageUrl: note.imageUrl || "",
         })),
-        base: (product.notes?.base || []).map((n) => ({
-          name: n.name || "",
+        base: (product.notes?.base || []).map((note) => ({
+          name: note.name || "",
           image: null,
-          imageUrl: n.imageUrl || "",
+          imageUrl: note.imageUrl || "",
         })),
       },
     });
@@ -101,48 +154,75 @@ export default function ProductAdmin() {
     const { name, value, files } = e.target;
 
     if (name === "image") {
-      setFormData((f) => ({ ...f, image: files[0] || null }));
-    } else if (name === "category") {
-      const options = e.target.selectedOptions;
-      const values = Array.from(options, (option) => option.value);
-      setFormData((f) => ({ ...f, category: values }));
-    } else {
-      setFormData((f) => ({ ...f, [name]: value }));
+      setFormData((current) => ({ ...current, image: files[0] || null }));
+      return;
     }
+
+    setFormData((current) => ({ ...current, [name]: value }));
+  };
+
+  const toggleCategory = (category) => {
+    setFormData((current) => {
+      const hasCategory = current.category.includes(category);
+
+      return {
+        ...current,
+        category: hasCategory
+          ? current.category.filter((item) => item !== category)
+          : [...current.category, category],
+      };
+    });
   };
 
   const handleNoteChange = (type, idx, value) => {
-    setFormData((f) => {
-      const updated = { ...f.notes };
-      updated[type][idx].name = value;
-      return { ...f, notes: updated };
-    });
+    setFormData((current) => ({
+      ...current,
+      notes: {
+        ...current.notes,
+        [type]: current.notes[type].map((note, noteIndex) =>
+          noteIndex === idx ? { ...note, name: value } : note,
+        ),
+      },
+    }));
   };
 
   const handleNoteImageChange = (type, idx, file) => {
-    setFormData((f) => {
-      const updated = { ...f.notes };
-      updated[type][idx].image = file || null;
-      return { ...f, notes: updated };
-    });
+    setFormData((current) => ({
+      ...current,
+      notes: {
+        ...current.notes,
+        [type]: current.notes[type].map((note, noteIndex) =>
+          noteIndex === idx ? { ...note, image: file || null } : note,
+        ),
+      },
+    }));
   };
 
   const addNoteField = (type) => {
-    setFormData((f) => {
-      const updated = { ...f.notes };
-      updated[type].push({ name: "", image: null });
-      return { ...f, notes: updated };
-    });
+    setFormData((current) => ({
+      ...current,
+      notes: {
+        ...current.notes,
+        [type]: [...current.notes[type], { name: "", image: null }],
+      },
+    }));
   };
 
   const removeNoteField = (type, idx) => {
-    setFormData((f) => {
-      const updated = { ...f.notes };
-      updated[type].splice(idx, 1);
-      if (updated[type].length === 0) {
-        updated[type] = [{ name: "", image: null }];
-      }
-      return { ...f, notes: updated };
+    setFormData((current) => {
+      const remainingNotes = current.notes[type].filter(
+        (_, noteIndex) => noteIndex !== idx,
+      );
+
+      return {
+        ...current,
+        notes: {
+          ...current.notes,
+          [type]: remainingNotes.length
+            ? remainingNotes
+            : [{ name: "", image: null }],
+        },
+      };
     });
   };
 
@@ -151,34 +231,33 @@ export default function ProductAdmin() {
     setLoading(true);
 
     const fd = new FormData();
-
     const notesPayload = {
-      top: formData.notes.top.map((n) => ({
-        name: n.name.trim(),
-        imageUrl: "",
+      top: formData.notes.top.map((note) => ({
+        name: note.name.trim(),
+        imageUrl: note.imageUrl || "",
       })),
-      middle: formData.notes.middle.map((n) => ({
-        name: n.name.trim(),
-        imageUrl: "",
+      middle: formData.notes.middle.map((note) => ({
+        name: note.name.trim(),
+        imageUrl: note.imageUrl || "",
       })),
-      base: formData.notes.base.map((n) => ({
-        name: n.name.trim(),
-        imageUrl: "",
+      base: formData.notes.base.map((note) => ({
+        name: note.name.trim(),
+        imageUrl: note.imageUrl || "",
       })),
     };
 
     fd.append("notes", JSON.stringify(notesPayload));
 
-    formData.notes.top.forEach((n) => {
-      if (n.image) fd.append("topNotesImages", n.image);
+    formData.notes.top.forEach((note) => {
+      if (note.image) fd.append("topNotesImages", note.image);
     });
 
-    formData.notes.middle.forEach((n) => {
-      if (n.image) fd.append("middleNotesImages", n.image);
+    formData.notes.middle.forEach((note) => {
+      if (note.image) fd.append("middleNotesImages", note.image);
     });
 
-    formData.notes.base.forEach((n) => {
-      if (n.image) fd.append("baseNotesImages", n.image);
+    formData.notes.base.forEach((note) => {
+      if (note.image) fd.append("baseNotesImages", note.image);
     });
 
     if (formData.image) {
@@ -201,18 +280,18 @@ export default function ProductAdmin() {
         });
       }
 
-      setShowProductModal(false);
+      closeProductModal();
       fetchProducts();
     } catch (err) {
-      console.error("❌ ERROR:", err.response?.data || err.message);
+      console.error("Error saving product:", err.response?.data || err.message);
       alert("Error saving product");
-    } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this product permanently?")) return;
+
     try {
       await axios.delete(`${API_URL}/${id}`);
       fetchProducts();
@@ -223,6 +302,8 @@ export default function ProductAdmin() {
   };
 
   const handleImageClick = (url) => {
+    if (!url) return;
+
     setSelectedImage(url);
     setShowImageModal(true);
   };
@@ -235,43 +316,76 @@ export default function ProductAdmin() {
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const normalizedCategory = categoryFilter.toLowerCase();
 
-  const displayedProducts = products.filter((prod) => {
+  const displayedProducts = products.filter((product) => {
     if (categoryFilter !== "All") {
-      const cat = Array.isArray(prod.category)
-        ? prod.category
-        : [prod.category].filter(Boolean);
-      const matchesCategory = cat.some(
-        (c) => c?.toLowerCase() === normalizedCategory,
+      const categories = normalizeCategories(product.category);
+      const matchesCategory = categories.some(
+        (category) => category?.toLowerCase() === normalizedCategory,
       );
+
       if (!matchesCategory) return false;
     }
 
     if (!normalizedSearch) return true;
 
-    const name = prod.name?.toLowerCase() || "";
-    const desc = prod.description?.toLowerCase() || "";
-    const cats = Array.isArray(prod.category)
-      ? prod.category.join(" ").toLowerCase()
-      : (prod.category || "").toLowerCase();
+    const name = product.name?.toLowerCase() || "";
+    const description = product.description?.toLowerCase() || "";
+    const categories = normalizeCategories(product.category).join(" ").toLowerCase();
 
     return (
       name.includes(normalizedSearch) ||
-      desc.includes(normalizedSearch) ||
-      cats.includes(normalizedSearch)
+      description.includes(normalizedSearch) ||
+      categories.includes(normalizedSearch)
     );
   });
+
+  const renderNoteSummary = (notes, compact = false) => {
+    const validNotes = (notes || []).filter((note) => note?.name);
+    const visibleNotes = validNotes.slice(0, compact ? 3 : 2);
+
+    if (visibleNotes.length === 0) {
+      return <span className="empty-note-copy">No notes added</span>;
+    }
+
+    return (
+      <>
+        {visibleNotes.map((note, index) => {
+          const imageSrc = resolveImg(note.imageUrl);
+
+          return (
+            <div
+              key={`${note.name}-${index}`}
+              className={`note-item${compact ? " compact" : ""}`}
+              title={note.name}
+            >
+              <div className="note-img-container">
+                {imageSrc ? (
+                  <img src={imageSrc} alt={note.name} className="note-img" />
+                ) : (
+                  <div className="note-placeholder">N</div>
+                )}
+              </div>
+              <span className="note-name">{note.name}</span>
+            </div>
+          );
+        })}
+        {validNotes.length > visibleNotes.length && (
+          <span className="more-notes">+{validNotes.length - visibleNotes.length} more</span>
+        )}
+      </>
+    );
+  };
 
   return (
     <main className="luxury-product-admin">
       <section className="admin-hero">
         <div className="hero-content">
           <h1 className="hero-title">Product Management</h1>
-          <p className="hero-subtitle">Control your fragrance catalog</p>
+          <p className="hero-subtitle">Add, update, and remove products from any screen size.</p>
         </div>
       </section>
 
       <div className="admin-container">
-        {/* TOP BAR: search + filter + count + add button */}
         <div className="admin-top-bar">
           <div className="top-left">
             <div className="products-count">
@@ -285,7 +399,7 @@ export default function ProductAdmin() {
               <div className="search-filter">
                 <input
                   type="text"
-                  placeholder="🔍 Search by name, description, category..."
+                  placeholder="Search by name, description, or category"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="luxury-input"
@@ -297,18 +411,9 @@ export default function ProductAdmin() {
                   onChange={(e) => setCategoryFilter(e.target.value)}
                   className="luxury-select"
                 >
-                  {[
-                    "All",
-                    "Attars",
-                    "Perfume",
-                    "Premium",
-                    "Male",
-                    "Female",
-                    "Unisex",
-                    "Celebrity",
-                  ].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {["All", ...PRODUCT_CATEGORIES].map((category) => (
+                    <option key={category} value={category}>
+                      {category}
                     </option>
                   ))}
                 </select>
@@ -317,160 +422,197 @@ export default function ProductAdmin() {
           </div>
 
           <div className="top-right">
-            <button className="luxury-btn primary large" onClick={openAddModal}>
-              ➕ Add New Product
+            <button
+              type="button"
+              className="luxury-btn primary large"
+              onClick={openAddModal}
+            >
+              Add Product
             </button>
           </div>
         </div>
 
-        {/* TABLE CARD */}
         <div className="table-container">
           {displayedProducts.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📦</div>
-              <h3>
-                No Products{" "}
-                {searchTerm || categoryFilter !== "All" ? "Match" : "Yet"}
-              </h3>
+              <div className="empty-icon">No products</div>
+              <h3>{searchTerm || categoryFilter !== "All" ? "No matching products" : "No products yet"}</h3>
               <p>
                 {searchTerm || categoryFilter !== "All"
-                  ? "Try adjusting your search or filters"
-                  : "Get started by adding your first luxury fragrance"}
+                  ? "Try adjusting your search or category filter."
+                  : "Get started by adding your first fragrance."}
               </p>
-              <button className="luxury-btn primary" onClick={openAddModal}>
-                ➕ Create First Product
+              <button type="button" className="luxury-btn primary" onClick={openAddModal}>
+                Create Product
               </button>
             </div>
           ) : (
-            <div className="table-wrapper">
-              <table className="luxury-table">
-                <thead>
-                  <tr>
-                    {[
-                      "Preview",
-                      "Name",
-                      "Categories",
-                      "Price",
-                      "Description",
-                      "Top Notes",
-                      "Middle Notes",
-                      "Base Notes",
-                      "Actions",
-                    ].map((h) => (
-                      <th key={h} className="table-header">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedProducts.map((prod) => (
-                    <tr key={prod._id} className="table-row">
-                      <td className="image-cell">
-                        {prod.imageUrl ? (
-                          <div
-                            className="product-image-wrapper"
-                            onClick={() =>
-                              handleImageClick(
-                                resolveImg(prod.imageUrl),
-                              )
-                            }
-                          >
-                            <img
-                              src={resolveImg(prod.imageUrl)}
-                              alt={prod.name}
-                              className="product-image"
-                            />
-                          </div>
-                        ) : (
-                          <div className="no-image">No Image</div>
-                        )}
-                      </td>
-                      <td className="name-cell">
-                        <div className="product-name">{prod.name}</div>
-                      </td>
-                      <td className="category-cell">
-                        {Array.isArray(prod.category)
-                          ? prod.category.slice(0, 2).join(", ") +
-                            (prod.category.length > 2
-                              ? ` +${prod.category.length - 2}`
-                              : "")
-                          : prod.category || "—"}
-                      </td>
-                      <td className="price-cell">
-                        ₹{Number(prod.price || 0).toLocaleString()}
-                      </td>
-                      <td className="desc-cell" title={prod.description}>
-                        {(prod.description || "—").substring(0, 60)}...
-                      </td>
-                      {["top", "middle", "base"].map((type) => (
-                        <td key={type} className="notes-cell">
-                          {(prod.notes?.[type] || [])
-                            .slice(0, 2)
-                            .map((n, i) => (
-                              <div key={i} className="note-item" title={n.name}>
-                                <div className="note-img-container">
-                                  {n.imageUrl ? (
-                                    <img
-                                      src={resolveImg(n.imageUrl)}
-                                      alt={n.name}
-                                      className="note-img"
-                                    />
-                                  ) : (
-                                    <div className="note-placeholder">📄</div>
-                                  )}
-                                </div>
-                                <span className="note-name">{n.name}</span>
-                              </div>
-                            ))}
-                          {(prod.notes?.[type] || []).length > 2 && (
-                            <span className="more-notes">
-                              +{prod.notes[type].length - 2} more
-                            </span>
-                          )}
-                        </td>
+            <>
+              <div className="table-wrapper desktop-table">
+                <table className="luxury-table">
+                  <thead>
+                    <tr>
+                      {[
+                        "Preview",
+                        "Name",
+                        "Categories",
+                        "Price",
+                        "Description",
+                        "Top Notes",
+                        "Middle Notes",
+                        "Base Notes",
+                        "Actions",
+                      ].map((header) => (
+                        <th key={header} className="table-header">
+                          {header}
+                        </th>
                       ))}
-                      <td className="actions-cell">
-                        <div className="action-buttons">
-                          <button
-                            className="luxury-btn secondary small"
-                            onClick={() => openEditModal(prod)}
-                            title="Edit Product"
-                          >
-                            ✏️ Edit
-                          </button>
-                          <button
-                            className="luxury-btn danger small"
-                            onClick={() => handleDelete(prod._id)}
-                            title="Delete Product"
-                          >
-                            🗑️ Delete
-                          </button>
-                        </div>
-                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {displayedProducts.map((product) => {
+                      const imageSrc = resolveImg(product.imageUrl);
+
+                      return (
+                        <tr key={product._id} className="table-row">
+                          <td className="image-cell">
+                            {imageSrc ? (
+                              <button
+                                type="button"
+                                className="product-image-wrapper"
+                                onClick={() => handleImageClick(imageSrc)}
+                              >
+                                <img
+                                  src={imageSrc}
+                                  alt={product.name}
+                                  className="product-image"
+                                />
+                              </button>
+                            ) : (
+                              <div className="no-image">No image</div>
+                            )}
+                          </td>
+                          <td className="name-cell">
+                            <div className="product-name">{product.name}</div>
+                          </td>
+                          <td className="category-cell">{getCategorySummary(product.category)}</td>
+                          <td className="price-cell">{formatPrice(product.price)}</td>
+                          <td className="desc-cell" title={product.description || "No description added."}>
+                            {getDescriptionPreview(product.description)}
+                          </td>
+                          {NOTE_TYPES.map(({ key }) => (
+                            <td key={key} className="notes-cell">
+                              {renderNoteSummary(product.notes?.[key] || [])}
+                            </td>
+                          ))}
+                          <td className="actions-cell">
+                            <div className="action-buttons">
+                              <button
+                                type="button"
+                                className="luxury-btn secondary small"
+                                onClick={() => openEditModal(product)}
+                                title="Edit Product"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                className="luxury-btn danger small"
+                                onClick={() => handleDelete(product._id)}
+                                title="Delete Product"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mobile-products">
+                {displayedProducts.map((product) => {
+                  const imageSrc = resolveImg(product.imageUrl);
+                  const productCategories = normalizeCategories(product.category);
+
+                  return (
+                    <article key={product._id} className="product-card">
+                      <div className="product-card-header">
+                        {imageSrc ? (
+                          <button
+                            type="button"
+                            className="product-image-wrapper product-card-image-button"
+                            onClick={() => handleImageClick(imageSrc)}
+                          >
+                            <img src={imageSrc} alt={product.name} className="product-image" />
+                          </button>
+                        ) : (
+                          <div className="no-image product-card-image-fallback">No image</div>
+                        )}
+
+                        <div className="product-card-summary">
+                          <div className="product-card-summary-top">
+                            <h3 className="product-card-name">{product.name}</h3>
+                            <span className="product-card-price">{formatPrice(product.price)}</span>
+                          </div>
+
+                          <div className="product-card-categories">
+                            {(productCategories.length ? productCategories : ["Uncategorized"]).map(
+                              (category) => (
+                                <span key={`${product._id}-${category}`} className="category-pill">
+                                  {category}
+                                </span>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="product-card-description">{getDescriptionPreview(product.description, 140)}</p>
+
+                      <div className="product-card-notes">
+                        {NOTE_TYPES.map(({ key, label }) => (
+                          <div key={key} className="product-card-note-group">
+                            <span className="note-group-label">{label}</span>
+                            <div className="note-summary compact">{renderNoteSummary(product.notes?.[key] || [], true)}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="product-card-actions">
+                        <button
+                          type="button"
+                          className="luxury-btn secondary"
+                          onClick={() => openEditModal(product)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="luxury-btn danger"
+                          onClick={() => handleDelete(product._id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      {/* Product Modal */}
       {showProductModal && (
-        <div
-          className="luxury-modal"
-          onClick={() => setShowProductModal(false)}
-        >
+        <div className="luxury-modal" onClick={closeProductModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{isEditMode ? "✏️ Edit Product" : "➕ Add New Product"}</h3>
-              <button
-                className="modal-close"
-                onClick={() => setShowProductModal(false)}
-              >
-                ×
+              <h3>{isEditMode ? "Edit Product" : "Add Product"}</h3>
+              <button type="button" className="modal-close" onClick={closeProductModal}>
+                x
               </button>
             </div>
 
@@ -488,7 +630,7 @@ export default function ProductAdmin() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Price (₹) *</label>
+                  <label>Price (Rs.) *</label>
                   <input
                     type="number"
                     name="price"
@@ -509,49 +651,47 @@ export default function ProductAdmin() {
                   value={formData.description}
                   onChange={handleInputChange}
                   rows="4"
-                  placeholder="Enter detailed product description..."
+                  placeholder="Enter detailed product description"
                   maxLength={500}
                 />
                 <small>{formData.description.length}/500 characters</small>
               </div>
 
-              <div className="form-group">
-                <label>Categories * (Hold Ctrl/Cmd to select multiple)</label>
-                <select
-                  name="category"
-                  multiple
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  size="6"
-                  required
-                >
-                  {[
-                    "Attars",
-                    "Perfume",
-                    "Premium",
-                    "Male",
-                    "Female",
-                    "Unisex",
-                    "Celebrity",
-                  ].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+              <div className="form-group full">
+                <label>Categories *</label>
+                <p className="field-hint">Tap one or more categories to assign this product.</p>
+                <div className="category-chip-grid">
+                  {PRODUCT_CATEGORIES.map((category) => {
+                    const selected = formData.category.includes(category);
+
+                    return (
+                      <label
+                        key={category}
+                        className={`category-chip${selected ? " active" : ""}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleCategory(category)}
+                        />
+                        <span>{category}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <small>
+                  {formData.category.length
+                    ? `${formData.category.length} categor${formData.category.length === 1 ? "y" : "ies"} selected`
+                    : "Select at least one category before saving."}
+                </small>
               </div>
 
-              <div className="form-group">
-                <label>
-                  {isEditMode ? "Update Image (optional)" : "Product Image"}
-                </label>
+              <div className="form-group full">
+                <label>{isEditMode ? "Update Image (optional)" : "Product Image"}</label>
                 {isEditMode && selectedProduct?.imageUrl && (
                   <div className="current-image-preview">
-                    <span>Current Image:</span>
-                    <img
-                      src={resolveImg(selectedProduct.imageUrl)}
-                      alt="Current"
-                    />
+                    <span>Current image</span>
+                    <img src={resolveImg(selectedProduct.imageUrl)} alt="Current product" />
                   </div>
                 )}
                 <input
@@ -560,57 +700,64 @@ export default function ProductAdmin() {
                   onChange={handleInputChange}
                   accept="image/*"
                 />
+                {formData.image && <small>Selected file: {formData.image.name}</small>}
               </div>
 
               <div className="notes-section">
-                {["top", "middle", "base"].map((type) => (
-                  <div key={type} className="notes-group">
-                    <h4>
-                      {type.charAt(0).toUpperCase() + type.slice(1)} Notes
-                    </h4>
-                    {formData.notes[type].map((n, i) => (
-                      <div key={i} className="note-editor">
-                        <input
-                          type="text"
-                          placeholder={`Enter ${type} note name`}
-                          value={n.name}
-                          onChange={(e) =>
-                            handleNoteChange(type, i, e.target.value)
-                          }
-                          maxLength={50}
-                        />
-                        {n.imageUrl && (
-                          <img
-                            src={resolveImg(n.imageUrl)}
-                            alt="Current note"
-                            className="note-preview"
-                            title="Current image"
+                {NOTE_TYPES.map(({ key, label }) => (
+                  <div key={key} className="notes-group">
+                    <div className="notes-group-header">
+                      <h4>{label}</h4>
+                      <button
+                        type="button"
+                        className="add-note"
+                        onClick={() => addNoteField(key)}
+                      >
+                        Add Note
+                      </button>
+                    </div>
+
+                    {formData.notes[key].map((note, index) => (
+                      <div key={`${key}-${index}`} className="note-editor">
+                        <div className="note-editor-fields">
+                          <input
+                            type="text"
+                            placeholder={`Enter ${label.toLowerCase()} name`}
+                            value={note.name}
+                            onChange={(e) => handleNoteChange(key, index, e.target.value)}
+                            maxLength={50}
                           />
-                        )}
-                        <input
-                          type="file"
-                          onChange={(e) =>
-                            handleNoteImageChange(type, i, e.target.files[0])
-                          }
-                          accept="image/*"
-                        />
+
+                          <div className="note-editor-upload">
+                            {note.imageUrl && (
+                              <img
+                                src={resolveImg(note.imageUrl)}
+                                alt="Current note"
+                                className="note-preview"
+                                title="Current image"
+                              />
+                            )}
+                            <input
+                              type="file"
+                              onChange={(e) =>
+                                handleNoteImageChange(key, index, e.target.files?.[0])
+                              }
+                              accept="image/*"
+                            />
+                          </div>
+                          {note.image && <small>Selected file: {note.image.name}</small>}
+                        </div>
+
                         <button
                           type="button"
                           className="remove-note"
-                          onClick={() => removeNoteField(type, i)}
+                          onClick={() => removeNoteField(key, index)}
                           title="Remove this note"
                         >
-                          ×
+                          Remove
                         </button>
                       </div>
                     ))}
-                    <button
-                      type="button"
-                      className="add-note"
-                      onClick={() => addNoteField(type)}
-                    >
-                      ➕ Add {type.charAt(0).toUpperCase() + type.slice(1)} Note
-                    </button>
                   </div>
                 ))}
               </div>
@@ -619,7 +766,7 @@ export default function ProductAdmin() {
                 <button
                   type="button"
                   className="luxury-btn secondary"
-                  onClick={() => setShowProductModal(false)}
+                  onClick={closeProductModal}
                 >
                   Cancel
                 </button>
@@ -633,16 +780,13 @@ export default function ProductAdmin() {
                     formData.category.length === 0
                   }
                 >
-                  {loading ? (
-                    <>
-                      <span className="spinner"></span>
-                      {isEditMode ? "Updating..." : "Creating..."}
-                    </>
-                  ) : isEditMode ? (
-                    "✅ Update Product"
-                  ) : (
-                    "➕ Create Product"
-                  )}
+                  {loading
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                      ? "Update Product"
+                      : "Create Product"}
                 </button>
               </div>
             </form>
@@ -652,12 +796,9 @@ export default function ProductAdmin() {
 
       {showImageModal && selectedImage && (
         <div className="luxury-modal" onClick={closeImageModal}>
-          <div
-            className="image-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className="modal-close" onClick={closeImageModal}>
-              ×
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="modal-close" onClick={closeImageModal}>
+              x
             </button>
             <img src={selectedImage} alt="Full size preview" />
           </div>
