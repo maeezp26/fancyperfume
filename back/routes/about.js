@@ -3,13 +3,25 @@
 
 const express = require('express');
 const About   = require('../models/About');
-const { createUploader, deleteByUrl } = require('../utils/cloudinary');
+const { createUploader, deleteByUrl, formatUploadError } = require('../utils/cloudinary');
 
 const router   = express.Router();
 const uploader = createUploader('about');
 
 // About has a variable number of sections (up to ~10), each with one optional image
-const upload = uploader.array('images', 10);
+const rawUpload = uploader.array('images', 10);
+
+const upload = (req, res, next) => {
+  rawUpload(req, res, (err) => {
+    if (err) {
+      const message = formatUploadError(err);
+      console.error('About upload error:', message);
+      return res.status(400).json({ success: false, error: `Image upload failed: ${message}` });
+    }
+
+    next();
+  });
+};
 
 // ── GET /api/about ────────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {

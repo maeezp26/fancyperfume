@@ -3,12 +3,12 @@
 
 const express = require('express');
 const Home    = require('../models/Home');
-const { createUploader, deleteByUrl } = require('../utils/cloudinary');
+const { createUploader, deleteByUrl, formatUploadError } = require('../utils/cloudinary');
 
 const router   = express.Router();
 const uploader = createUploader('home');
 
-const upload = uploader.fields([
+const rawUpload = uploader.fields([
   { name: 'latestProducts[0]', maxCount: 1 },
   { name: 'latestProducts[1]', maxCount: 1 },
   { name: 'latestProducts[2]', maxCount: 1 },
@@ -20,6 +20,18 @@ const upload = uploader.fields([
   { name: 'occasions[3]',      maxCount: 1 },
   { name: 'occasions[4]',      maxCount: 1 },
 ]);
+
+const upload = (req, res, next) => {
+  rawUpload(req, res, (err) => {
+    if (err) {
+      const message = formatUploadError(err);
+      console.error('Home upload error:', message);
+      return res.status(400).json({ success: false, error: `Image upload failed: ${message}` });
+    }
+
+    next();
+  });
+};
 
 // ── GET /api/home ─────────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {

@@ -1,7 +1,7 @@
 // back/routes/product.js
 const express = require('express');
 const Product = require('../models/Product');
-const { createUploader, deleteByUrl } = require('../utils/cloudinary');
+const { createUploader, deleteByUrl, formatUploadError } = require('../utils/cloudinary');
 
 const router   = express.Router();
 const uploader = createUploader('products');
@@ -17,8 +17,9 @@ const rawUpload = uploader.fields([
 const upload = (req, res, next) => {
   rawUpload(req, res, (err) => {
     if (err) {
-      console.error('Upload error:', err.message);
-      return res.status(400).json({ success: false, error: 'Image upload failed: ' + err.message });
+      const message = formatUploadError(err);
+      console.error('Upload error:', message);
+      return res.status(400).json({ success: false, error: 'Image upload failed: ' + message });
     }
     next();
   });

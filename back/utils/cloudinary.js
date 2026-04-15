@@ -5,6 +5,23 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
+const requiredCloudinaryEnv = [
+  'CLOUDINARY_CLOUD_NAME',
+  'CLOUDINARY_API_KEY',
+  'CLOUDINARY_API_SECRET',
+];
+
+const missingCloudinaryEnv = requiredCloudinaryEnv.filter(
+  (key) => !String(process.env[key] || '').trim()
+);
+
+const formatUploadError = (err) => {
+  const baseMessage = err?.message || 'Upload failed';
+  if (!missingCloudinaryEnv.length) return baseMessage;
+
+  return `${baseMessage}. Missing Cloudinary environment variables: ${missingCloudinaryEnv.join(', ')}`;
+};
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key:    process.env.CLOUDINARY_API_KEY,
@@ -61,4 +78,4 @@ const deleteByUrl = async (url) => {
   }
 };
 
-module.exports = { cloudinary, createUploader, deleteByUrl };
+module.exports = { cloudinary, createUploader, deleteByUrl, formatUploadError };
