@@ -224,7 +224,7 @@ export default function Checkout() {
         body: JSON.stringify({
           amount: computedTotal,
           orderData: {
-            items: cart.items.map((item) => ({
+            items: cart.items.filter(item => item.product).map((item) => ({
               productId: item.product._id,
               name: item.product.name,
               mlSize: item.mlSize,
@@ -264,7 +264,7 @@ export default function Checkout() {
               body: JSON.stringify({
                 ...response,
                 orderData: {
-                  items: cart.items.map((item) => ({
+                  items: cart.items.filter(item => item.product).map((item) => ({
                     productId: item.product._id,
                     name: item.product.name,
                     mlSize: item.mlSize,
@@ -542,14 +542,13 @@ export default function Checkout() {
             <h3 className="summary-title">Order Summary</h3>
 
             <div className="summary-items">
-              {cart.items.map((item) => (
+              {cart.items.filter(item => item.product).map((item) => (
                 <div key={item._id} className="summary-item">
                   <div className="item-preview">
                     <img
-                      src={
-                        assetUrl(item.product.imageUrl)
-                      }
+                      src={item.product.imageUrl ? assetUrl(item.product.imageUrl) : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%221a1a2e%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'}
                       alt={item.product.name}
+                      onError={e => { e.target.onerror = null; e.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%221a1a2e%22 width=%22100%22 height=%22100%22/%3E%3C/svg%3E'; }}
                     />
                     <div>
                       <h4>{item.product.name}</h4>

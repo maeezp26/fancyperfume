@@ -1,35 +1,26 @@
 import React, { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import './css/AddToCartButton.css';
 
 export default function AddToCartButton({ 
   product, 
   className = '', 
   size = 'medium',
-  quantity = 1,      // ✅ ADD
-  mlSize = 3         // ✅ ADD
+  quantity = 1,
+  mlSize = 3
 }) {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
 const handleAddToCart = async () => {
-  if (!isAuthenticated()) {
-    navigate('/Login');
-    return;
-  }
+  // ✅ CHANGED: No login required - works for both authenticated and anonymous users
+  setLoading(true);
+  setMessage('');
 
-    setLoading(true);
-    setMessage('');
-
-   try {
-    // ✅ Use props directly (not product prop which doesn't have them)
-    const cartQuantity = quantity || 1;  // From ProductDetails props
-    const cartMlSize = mlSize || 3;      // From ProductDetails props
+  try {
+    const cartQuantity = quantity || 1;
+    const cartMlSize = mlSize || 3;
     
     console.log('Adding:', { 
       productId: product._id, 
@@ -37,9 +28,10 @@ const handleAddToCart = async () => {
       mlSize: cartMlSize 
     });
 
-      const result = await addToCart(product._id, cartQuantity, cartMlSize);
-      console.log('Add to cart result:', result);
-       if (result.success) {
+    const result = await addToCart(product._id, cartQuantity, cartMlSize);
+    console.log('Add to cart result:', result);
+    
+    if (result.success) {
       setMessage('Added to cart!');
       setTimeout(() => setMessage(''), 2000);
     } else {

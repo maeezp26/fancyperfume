@@ -101,9 +101,9 @@ export default function ProductAdmin() {
       description: "",
       image: null,
       notes: {
-        top: [{ name: "", image: null }],
-        middle: [{ name: "", image: null }],
-        base: [{ name: "", image: null }],
+        top: [{ name: "", image: null, imagePreview: null }],
+        middle: [{ name: "", image: null, imagePreview: null }],
+        base: [{ name: "", image: null, imagePreview: null }],
       },
     });
   };
@@ -134,16 +134,19 @@ export default function ProductAdmin() {
           name: note.name || "",
           image: null,
           imageUrl: note.imageUrl || "",
+          imagePreview: null,
         })),
         middle: (product.notes?.middle || []).map((note) => ({
           name: note.name || "",
           image: null,
           imageUrl: note.imageUrl || "",
+          imagePreview: null,
         })),
         base: (product.notes?.base || []).map((note) => ({
           name: note.name || "",
           image: null,
           imageUrl: note.imageUrl || "",
+          imagePreview: null,
         })),
       },
     });
@@ -191,9 +194,16 @@ export default function ProductAdmin() {
       ...current,
       notes: {
         ...current.notes,
-        [type]: current.notes[type].map((note, noteIndex) =>
-          noteIndex === idx ? { ...note, image: file || null } : note,
-        ),
+        [type]: current.notes[type].map((note, noteIndex) => {
+          if (noteIndex !== idx) return note;
+          
+          if (!file) {
+            return { ...note, image: null, imagePreview: null };
+          }
+          
+          const preview = URL.createObjectURL(file);
+          return { ...note, image: file, imagePreview: preview };
+        }),
       },
     }));
   };
@@ -203,7 +213,7 @@ export default function ProductAdmin() {
       ...current,
       notes: {
         ...current.notes,
-        [type]: [...current.notes[type], { name: "", image: null }],
+        [type]: [...current.notes[type], { name: "", image: null, imagePreview: null }],
       },
     }));
   };
@@ -213,6 +223,13 @@ export default function ProductAdmin() {
       const remainingNotes = current.notes[type].filter(
         (_, noteIndex) => noteIndex !== idx,
       );
+      
+      // Clean up image preview URLs
+      current.notes[type].forEach((note) => {
+        if (note.imagePreview) {
+          URL.revokeObjectURL(note.imagePreview);
+        }
+      });
 
       return {
         ...current,
@@ -220,7 +237,7 @@ export default function ProductAdmin() {
           ...current.notes,
           [type]: remainingNotes.length
             ? remainingNotes
-            : [{ name: "", image: null }],
+            : [{ name: "", image: null, imagePreview: null }],
         },
       };
     });
@@ -729,12 +746,12 @@ export default function ProductAdmin() {
                           />
 
                           <div className="note-editor-upload">
-                            {note.imageUrl && (
+                            {(note.imagePreview || note.imageUrl) && (
                               <img
-                                src={resolveImg(note.imageUrl)}
-                                alt="Current note"
+                                src={note.imagePreview || resolveImg(note.imageUrl)}
+                                alt="Note preview"
                                 className="note-preview"
-                                title="Current image"
+                                title={note.imagePreview ? "New image (not saved yet)" : "Current image"}
                               />
                             )}
                             <input

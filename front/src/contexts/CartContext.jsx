@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { apiUrl } from '../utils/api';
 
 const CartContext = createContext();
+const ANONYMOUS_CART_KEY = 'fancy_perfume_anonymous_cart';
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -16,25 +17,114 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
-  // FIX #1: Depend on `user` (changes only on login/logout), NOT on
-  // `isAuthenticated` function reference — that changes every render → infinite loop.
+  // Load anonymous cart from localStorage on mount
   useEffect(() => {
-    if (isAuthenticated()) {
-      fetchCart();
-    } else {
-      setCart({ items: [], totalAmount: 0 });
+    try {
+      const saved = localStorage.getItem(ANONYMOUS_CART_KEY);
+      if (saved) {
+        const anonymous = JSON.parse(saved);
+        setCart(anonymous);
+      }
+    } catch (e) {
+      console.error('Failed to load anonymous cart:', e);
+    }
+  }, []);
+
+  // When user logs in, merge anonymous cart with backend cart
+  useEffect(() => {
+    if (isAuthenticated() && user) {
+      mergeAndLoadCart();
+    } else if (!isAuthenticated()) {
+      // User logged out - switch to anonymous cart
+      const saved = localStorage.getItem(ANONYMOUS_CART_KEY);
+      if (saved) {
+        try {
+          setCart(JSON.parse(saved));
+        } catch (e) {
+          setCart({ items: [], totalAmount: 0 });
+        }
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Merge anonymous cart items with backend cart when user logs in
+  const mergeAndLoadCart = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      
+      // Get anonymous cart
+      const anonymousCart = localStorage.getItem(ANONYMOUS_CART_KEY);
+      let itemsToAdd = [];
+      
+      if (anonymousCart) {
+        try {
+          const parsed = JSON.parse(anonymousCart);
+          itemsToAdd = parsed.items || [];
+        } catch (e) {
+          console.error('Failed to parse anonymous cart:', e);
+        }
+      }
+
+      // Fetch user's server cart
+      const response = await axios.get(apiUrl('/api/cart'), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const serverCart = response.data;
+
+      // Merge items: add anonymous items to server cart
+      if (itemsToAdd.length > 0) {
+        for (const item of itemsToAdd) {
+          try {
+            await axios.post(
+              apiUrl('/api/cart/add'),
+              { 
+                productId: item.product?._id || item.product, 
+                quantity: item.quantity, 
+                mlSize: item.mlSize 
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          } catch (e) {
+            console.error('Failed to merge item:', e);
+          }
+        }
+      }
+
+      // Fetch updated cart after merge
+      const finalResponse = await axios.get(apiUrl('/api/cart'), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCart({ items: finalResponse.data?.items || [], totalAmount: finalResponse.data?.totalAmount || 0 });
+      
+      // Clear anonymous cart
+      localStorage.removeItem(ANONYMOUS_CART_KEY);
+    } catch (error) {
+      console.error('Cart merge error:', error);
+      setCart({ items: [], totalAmount: 0 });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const fetchCart = useCallback(async () => {
     const token = localStorage.getItem('token');
-    // FIX #2: original code referenced `response.data` BEFORE the axios call
-    // when token was missing → ReferenceError crash. Now just bail early.
     if (!token) {
-      setCart({ items: [], totalAmount: 0 });
+      // Load from anonymous cart
+      const saved = localStorage.getItem(ANONYMOUS_CART_KEY);
+      if (saved) {
+        try {
+          setCart(JSON.parse(saved));
+        } catch (e) {
+          setCart({ items: [], totalAmount: 0 });
+        }
+      }
       return;
     }
+
     try {
       setLoading(true);
       const response = await axios.get(apiUrl('/api/cart'), {
@@ -42,7 +132,10 @@ export const CartProvider = ({ children }) => {
       });
       setCart({ items: response.data?.items || [], totalAmount: response.data?.totalAmount || 0 });
     } catch (error) {
-      if (error.response?.status === 401) { setCart({ items: [], totalAmount: 0 }); return; }
+      if (error.response?.status === 401) {
+        setCart({ items: [], totalAmount: 0 });
+        return;
+      }
       console.error('Cart fetch error:', error.response?.data || error.message);
       setCart({ items: [], totalAmount: 0 });
     } finally {
@@ -51,22 +144,54 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   const addToCart = async (productId, quantity = 1, mlSize = 3) => {
-    // FIX #3: isAuthenticated is a FUNCTION — must call it with ()
-    if (!isAuthenticated()) throw new Error('Please login to add items to cart');
+    // ✅ CHANGED: No auth required - supports both authenticated and anonymous users
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.post(
-        apiUrl('/api/cart/add'),
-        { productId, quantity, mlSize },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setCart(response.data.cart);
-      return { success: true, message: 'Item added to cart' };
+
+      if (token) {
+        // Authenticated user - use backend
+        const response = await axios.post(
+          apiUrl('/api/cart/add'),
+          { productId, quantity, mlSize },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setCart(response.data.cart);
+        return { success: true, message: 'Item added to cart' };
+      } else {
+        // Anonymous user - use localStorage
+        const saved = localStorage.getItem(ANONYMOUS_CART_KEY);
+        let anonCart = saved ? JSON.parse(saved) : { items: [], totalAmount: 0 };
+
+        // Check if item already exists
+        const existingIdx = anonCart.items.findIndex(
+          (it) => it.product === productId && it.mlSize === mlSize
+        );
+
+        if (existingIdx !== -1) {
+          anonCart.items[existingIdx].quantity += quantity;
+        } else {
+          anonCart.items.push({
+            product: productId,
+            quantity,
+            mlSize,
+            price: 0, // Will be fetched/calculated when user views cart
+          });
+        }
+
+        // Recalculate total
+        anonCart.totalAmount = anonCart.items.reduce((sum, it) => sum + (it.price * it.quantity), 0);
+        
+        localStorage.setItem(ANONYMOUS_CART_KEY, JSON.stringify(anonCart));
+        setCart(anonCart);
+        return { success: true, message: 'Item added to cart' };
+      }
     } catch (error) {
       console.error('Error adding to cart:', error.response?.data || error.message);
       return { success: false, message: error.response?.data?.message || 'Failed to add item to cart' };
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateQuantity = async (itemId, quantity) => {
@@ -83,7 +208,9 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       console.error('Error updating quantity:', error.response?.data || error.message);
       return { success: false };
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateMlSize = async (itemId, mlSize) => {
@@ -100,7 +227,9 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       console.error('Error updating mlSize:', error.response?.data || error.message);
       return { success: false };
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const removeFromCart = async (itemId) => {
@@ -116,26 +245,34 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       console.error('Error removing from cart:', error.response?.data || error.message);
       return { success: false };
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const clearCart = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      await axios.delete(apiUrl('/api/cart/clear'), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      
+      if (token) {
+        await axios.delete(apiUrl('/api/cart/clear'), {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        localStorage.removeItem(ANONYMOUS_CART_KEY);
+      }
+      
       setCart({ items: [], totalAmount: 0 });
       return { success: true };
     } catch (error) {
       console.error('Error clearing cart:', error.response?.data || error.message);
       return { success: false };
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Header badge should show how many products are in the cart,
-  // not the summed quantity of a single product line.
   const getCartItemCount = () => cart?.items?.length || 0;
   const getTotalAmount = () => cart.totalAmount;
 
