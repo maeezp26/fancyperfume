@@ -134,7 +134,9 @@ export const CartProvider = ({ children }) => {
     } finally { setLoading(false); }
   };
 
-  const getCartItemCount = () => cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+  // Header badge should show how many products are in the cart,
+  // not the summed quantity of a single product line.
+  const getCartItemCount = () => cart?.items?.length || 0;
   const getTotalAmount = () => cart.totalAmount;
 
   return (
