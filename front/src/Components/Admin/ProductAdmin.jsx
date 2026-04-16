@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./ProductAdmin.css";
 import axios from "axios";
 import { apiUrl, assetUrl } from "../../utils/api";
@@ -265,16 +265,16 @@ export default function ProductAdmin() {
 
     fd.append("notes", JSON.stringify(notesPayload));
 
-    formData.notes.top.forEach((note) => {
-      if (note.image) fd.append("topNotesImages", note.image);
+    formData.notes.top.forEach((note, index) => {
+      if (note.image) fd.append(`topNotesImage_${index}`, note.image);
     });
 
-    formData.notes.middle.forEach((note) => {
-      if (note.image) fd.append("middleNotesImages", note.image);
+    formData.notes.middle.forEach((note, index) => {
+      if (note.image) fd.append(`middleNotesImage_${index}`, note.image);
     });
 
-    formData.notes.base.forEach((note) => {
-      if (note.image) fd.append("baseNotesImages", note.image);
+    formData.notes.base.forEach((note, index) => {
+      if (note.image) fd.append(`baseNotesImage_${index}`, note.image);
     });
 
     if (formData.image) {

@@ -160,8 +160,8 @@
 .product-title {
   font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 700;
-  line-height: 1.1;
-  margin: 0 0 0.5rem 0;
+  line-height: 1.25;
+  margin: 1.5rem 0 0.85rem 0;
   background: var(--gradient-gold);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -384,6 +384,33 @@
 
 .feature-icon {
   font-size: 1.5rem;
+}
+
+/* Fragrance Notes Styling */
+.notes-section {
+  max-width: 1200px;
+  margin: 6rem auto 0;
+  padding: 0 1rem;
+  clear: both;
+}
+
+.notes-title {
+  text-align: center;
+  font-size: 2.8rem;
+  font-weight: 700;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 4rem 0;
+  width: 100%;
+}
+
+.notes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  align-items: center;
 }
 
 /* Perfume Pyramid */

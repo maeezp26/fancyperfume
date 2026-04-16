@@ -9,6 +9,7 @@ import About from "./Components/About";
 import Contact from "./Components/Feedback";
 import Login from "./Components/Login";
 import Register from "./Components/Register";
+import ForgotPassword from "./Components/ForgotPassword";
 import Cart from "./Components/Cart";
 import Checkout from "./Components/Checkout";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -54,6 +55,7 @@ function App() {
               <Route path="/contact"   element={<Contact />} />
               <Route path="/login"     element={<Login />} />
               <Route path="/register"  element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/cart"      element={<Cart />} />
               <Route path="/checkout"  element={<Checkout />} />
               <Route path="/myorders"  element={<MyOrders />} />

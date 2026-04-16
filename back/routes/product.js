@@ -6,12 +6,7 @@ const { createUploader, deleteByUrl, formatUploadError } = require('../utils/clo
 const router   = express.Router();
 const uploader = createUploader('products');
 
-const rawUpload = uploader.fields([
-  { name: 'image',             maxCount: 1  },
-  { name: 'topNotesImages',    maxCount: 10 },
-  { name: 'middleNotesImages', maxCount: 10 },
-  { name: 'baseNotesImages',   maxCount: 10 },
-]);
+const rawUpload = uploader.any();
 
 // Wrapper that catches multer/Cloudinary errors and returns clean JSON
 const upload = (req, res, next) => {
@@ -63,23 +58,26 @@ router.post('/', upload, async (req, res) => {
     try { parsedNotes    = notes    ? JSON.parse(notes)    : parsedNotes;    } catch(e) { /* ignore */ }
     try { parsedCategory = category ? JSON.parse(category) : parsedCategory; } catch(e) { /* ignore */ }
 
-    const files = req.files || {};
-    const mapNotes = (arr = [], filesArr = []) =>
-      arr.map((note, i) => ({
-        name:     note?.name || '',
-        imageUrl: filesArr?.[i]?.path || '',
-      }));
+    const files = req.files || [];
+    const mapNotes = (type, arr = []) =>
+      arr.map((note, i) => {
+        const file = files.find(f => f.fieldname === `${type}NotesImage_${i}`);
+        return {
+          name:     note?.name || '',
+          imageUrl: file?.path || '',
+        };
+      });
 
     const newProduct = new Product({
       name:        name.trim(),
       category:    parsedCategory,
       price:       Number(price),
       description: (description || '').trim(),
-      imageUrl:    files.image?.[0]?.path || '',
+      imageUrl:    files.find(f => f.fieldname === 'image')?.path || '',
       notes: {
-        top:    mapNotes(parsedNotes.top,    files.topNotesImages),
-        middle: mapNotes(parsedNotes.middle, files.middleNotesImages),
-        base:   mapNotes(parsedNotes.base,   files.baseNotesImages),
+        top:    mapNotes('top',    parsedNotes.top),
+        middle: mapNotes('middle', parsedNotes.middle),
+        base:   mapNotes('base',   parsedNotes.base),
       },
     });
 
@@ -104,12 +102,15 @@ router.put('/:id', upload, async (req, res) => {
     try { parsedCategory = category ? JSON.parse(category) : []; } catch(e) { /* ignore */ }
     try { parsedNotes    = notes    ? JSON.parse(notes)    : parsedNotes; } catch(e) { /* ignore */ }
 
-    const files = req.files || {};
-    const mapNotes = (arr = [], uploadedFiles = [], existingNotes = []) =>
-      arr.map((note, i) => ({
-        name:     note?.name || '',
-        imageUrl: uploadedFiles[i]?.path || note?.imageUrl || existingNotes[i]?.imageUrl || '',
-      }));
+    const files = req.files || [];
+    const mapNotes = (type, arr = [], existingNotes = []) =>
+      arr.map((note, i) => {
+        const file = files.find(f => f.fieldname === `${type}NotesImage_${i}`);
+        return {
+          name:     note?.name || '',
+          imageUrl: file?.path || note?.imageUrl || existingNotes[i]?.imageUrl || '',
+        };
+      });
 
     const updated = {
       name:        (name || '').trim(),
@@ -117,15 +118,16 @@ router.put('/:id', upload, async (req, res) => {
       price:       parseFloat(price),
       description: (description || '').trim(),
       notes: {
-        top:    mapNotes(parsedNotes.top,    files.topNotesImages,    existing.notes?.top),
-        middle: mapNotes(parsedNotes.middle, files.middleNotesImages, existing.notes?.middle),
-        base:   mapNotes(parsedNotes.base,   files.baseNotesImages,   existing.notes?.base),
+        top:    mapNotes('top',    parsedNotes.top,    existing.notes?.top),
+        middle: mapNotes('middle', parsedNotes.middle, existing.notes?.middle),
+        base:   mapNotes('base',   parsedNotes.base,   existing.notes?.base),
       },
     };
 
-    if (files.image?.[0]) {
+    const imageFile = files.find(f => f.fieldname === 'image');
+    if (imageFile) {
       await deleteByUrl(existing.imageUrl);
-      updated.imageUrl = files.image[0].path;
+      updated.imageUrl = imageFile.path;
     }
 
     const product = await Product.findByIdAndUpdate(req.params.id, updated, { new: true });

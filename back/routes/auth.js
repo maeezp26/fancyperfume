@@ -1,6 +1,7 @@
 // back/routes/auth.js
 const express = require('express');
 const jwt     = require('jsonwebtoken');
+const crypto  = require('crypto');
 const User    = require('../models/User');
 const { authMiddleware } = require('../middleware/auth');
 
@@ -125,6 +126,76 @@ router.post('/google', async (req, res) => {
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(401).json({ message: 'Google authentication failed' });
+  }
+});
+
+// ── Forgot Password — generate OTP ────────────────────────────────────────────
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { contact } = req.body;
+    if (!contact) return res.status(400).json({ message: 'Email or phone is required' });
+
+    const lookup = String(contact).trim().toLowerCase();
+    const user = await User.findOne({
+      $or: [{ email: lookup }, { phone: contact.trim() }],
+    });
+
+    if (!user) return res.status(404).json({ message: 'No account found with this email or phone' });
+
+    // Generate 6-digit OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    user.resetOtp = otp;
+    user.resetOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    await user.save();
+
+    // TODO: In production, send OTP via email/SMS instead of returning it
+    console.log(`🔑 Password reset OTP for ${contact}: ${otp}`);
+
+    res.json({
+      message: 'OTP sent successfully. Please check your email/phone.',
+      // DEV ONLY: remove this in production when actual email/SMS sending is implemented
+      otp,
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// ── Reset Password — verify OTP and set new password ──────────────────────────
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { contact, otp, newPassword } = req.body;
+    if (!contact || !otp || !newPassword)
+      return res.status(400).json({ message: 'All fields are required' });
+
+    if (newPassword.length < 6)
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+
+    const lookup = String(contact).trim().toLowerCase();
+    const user = await User.findOne({
+      $or: [{ email: lookup }, { phone: contact.trim() }],
+    });
+
+    if (!user) return res.status(404).json({ message: 'No account found' });
+
+    // Verify OTP
+    if (!user.resetOtp || user.resetOtp !== otp)
+      return res.status(400).json({ message: 'Invalid OTP' });
+
+    if (!user.resetOtpExpires || user.resetOtpExpires < new Date())
+      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+
+    // Set new password & clear OTP fields
+    user.password = newPassword;
+    user.resetOtp = '';
+    user.resetOtpExpires = null;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully. You can now sign in.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

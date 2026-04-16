@@ -301,6 +301,23 @@
 }
 .auth-link:hover { color: #f5d060; text-decoration: underline; }
 
+/* ── Forgot password link ──────────────────────────────────────────────── */
+.fp-forgot-link-wrap {
+  text-align: right;
+  margin: -0.3rem 0 0.5rem;
+}
+.fp-forgot-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(212, 175, 55, 0.7);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.fp-forgot-link:hover {
+  color: #f5d060;
+  text-decoration: underline;
+}
+
 /* ── Mobile ─────────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .auth-card {

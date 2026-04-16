@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, minlength: 6 },
   role:     { type: String, enum: ['user', 'admin'], default: 'user' },
 
+  // Password-reset OTP fields
+  resetOtp:        { type: String, default: '' },
+  resetOtpExpires: { type: Date,   default: null },
+
   // FIX: googleId field was missing — Google OAuth route tries to save it,
   // causing "Unrecognized field" error when a user signs in with Google.
   googleId: { type: String, default: '' },
